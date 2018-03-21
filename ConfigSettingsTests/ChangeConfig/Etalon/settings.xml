@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<settings>
+  <var name="LANGUAGE" value="en" />
+  <var name="LOG_LANGUAGE" value="fr" />
+  <var name="CONNECTION_STRING" value="Data Source=testSqlServer\s2012;Initial Catalog=TestDB;Persist Security Info=True;User ID=sa;Application Name=Sungero Application" />
+  <var name="SERVER_ROOT_PATH" value="test.comp/Local" />
+  <var name="LOGS_PATH" value="D:\Logs" />
+  <var name="SMTP_FROM" value="smpt@from" />
+  <var name="SMTP_HOST" value="smtp.google.com" />
+  <var name="SMTP_USER" value="admin" />
+  <!--<var name="SMTP_PORT" value="567" />-->
+  <var name="SMTP_PASSWORD" value="qwerty" />
+  <var name="LEGACY_POLICY_ENABLED" value="_REMOVE_" />
+  <var name="AUTHENTICATION_MODE" value="Linux Lite" />
+  <var name="AUTHENTICATION_TYPE" value="lazy" />
+  <var name="SHARED_LOG_PATH" value="\\SHARED\Logs" />
+  <var name="PROTOCOL" value="HTTP" />
+  <var name="DNS_IDENTITY" value="Identity DNS Server" />
+  <var name="CLIENT_MODE" value="custom" />
+  <var name="ENDPOINT_KIND" value="secret" />
+  <var name="ALL_TYPE" value="all" />
+
+  <block name="RECIPIENT_TREE_SETTINGS" enabled="true" />
+  <block name="NHIBERNATE_PROFILER" enabled="false" />
+  <block name="SHARED_LOGGING" enabled="true" />
+  <block name="REMOTE_LOGGING" enabled="false" />
+  <block name="TENANTS">
+    <tenant name="alpha" db="alpha_db" />
+    <tenant name="beta" user="alpha_user" />
+  </block>
+</settings>

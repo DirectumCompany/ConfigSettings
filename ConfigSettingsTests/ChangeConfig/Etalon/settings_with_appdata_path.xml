@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<settings>
+  <var name="LANGUAGE" value="en" />
+  <var name="LOG_LANGUAGE" value="fr" />
+  <var name="CONNECTION_STRING" value="Data Source=testSqlServer\s2012;Initial Catalog=TestDB;Persist Security Info=True;User ID=sa;Application Name=Sungero Application" />
+  <var name="SERVER_ROOT_PATH" value="test.comp/Local" />
+  <var name="LOGS_PATH" value="D:\Logs" />
+  <var name="SMTP_FROM" value="smpt@from" />
+  <var name="SMTP_HOST" value="smtp.google.com" />
+  <var name="SMTP_USER" value="admin" />
+  <!--<var name="SMTP_PORT" value="567" />-->
+  <meta name="FORCE_USE_APPDATA_PATH" value="true" />
+
+</settings>

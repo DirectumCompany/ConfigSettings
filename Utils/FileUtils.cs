@@ -61,6 +61,28 @@ namespace ConfigSettings.Utils
       return new byte[0];
     }
 
+    /// <summary>
+    /// Убрать атрибут файла.
+    /// </summary>
+    /// <param name="filePath">Путь к файлу.</param>
+    /// <param name="attributes">Атрибут, который необходимо удалить.</param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Перехват исключений в данном случае необходим.")]
+    public static void RemoveFileAttribute(string filePath, FileAttributes attributes)
+    {
+      try
+      {
+        var currentAttributes = File.GetAttributes(filePath);
+        var newAttributes = currentAttributes & ~attributes;
+        if (currentAttributes != newAttributes)
+          File.SetAttributes(filePath, newAttributes);
+      }
+      catch (Exception ex)
+      {
+        // TODO логирование.
+        // log.Value.Error(ex.Message, ex);
+      }
+    }
+
     #endregion
   }
 }
