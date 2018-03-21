@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Базовый класс для установки значений элементов xml-конфига.
@@ -13,20 +13,20 @@ namespace CommonLibrary.Settings.Patch
     /// Получить фактическое значение для установки.
     /// </summary>
     /// <param name="currentValue">Текущее значение.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <returns>Фактическое (новое) значение.</returns>
-    public string EvaluateValue(string currentValue, ConfigSettings configSettings)
+    public string EvaluateValue(string currentValue, ConfigSettingsParser configSettingsParser)
     {
-      return this.expressionEvaluator.EvaluateValue(currentValue, configSettings);
+      return this.expressionEvaluator.EvaluateValue(currentValue, configSettingsParser);
     }
 
     /// <summary>
     /// Применить установку значения к переданному xml-элементу.
     /// </summary>
     /// <param name="element">Xml-элемент.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <param name="isAncestorSetter">Признак, что правило установки является унаследованным (с предыдущих уровней xml-документа).</param>
-    public abstract void Apply(XElement element, ConfigSettings configSettings, bool isAncestorSetter);
+    public abstract void Apply(XElement element, ConfigSettingsParser configSettingsParser, bool isAncestorSetter);
 
     #region Конструкторы
 

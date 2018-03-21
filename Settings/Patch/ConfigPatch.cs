@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Класс для коррекции конфига на основании настроек.
@@ -18,7 +18,7 @@ namespace CommonLibrary.Settings.Patch
     /// <summary>
     /// Настройки конфига.
     /// </summary>
-    private readonly ConfigSettings configSettings;
+    private readonly ConfigSettingsParser configSettingsParser;
 
     #endregion
 
@@ -29,7 +29,7 @@ namespace CommonLibrary.Settings.Patch
     /// </summary>
     public void Patch()
     {
-      new BlockAccessor(this.config).ApplyAccess(this.configSettings);
+      new BlockAccessor(this.config).ApplyAccess(this.configSettingsParser);
       this.VisitElement(this.config.Root, new List<List<BaseSetter>>());
     }
 
@@ -136,7 +136,7 @@ namespace CommonLibrary.Settings.Patch
       {
         var isAncestorSetter = i < setters.Count - 1;
         foreach (var setter in setters[i])
-          setter.Apply(element, this.configSettings, isAncestorSetter);
+          setter.Apply(element, this.configSettingsParser, isAncestorSetter);
       }
     }
 
@@ -148,11 +148,11 @@ namespace CommonLibrary.Settings.Patch
     /// Конструктор.
     /// </summary>
     /// <param name="config">Xml-конфиг.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
-    public ConfigPatch(XDocument config, ConfigSettings configSettings)
+    /// <param name="configSettingsParser">Настройки конфига.</param>
+    public ConfigPatch(XDocument config, ConfigSettingsParser configSettingsParser)
     {
       this.config = config;
-      this.configSettings = configSettings;
+      this.configSettingsParser = configSettingsParser;
     }
 
     #endregion

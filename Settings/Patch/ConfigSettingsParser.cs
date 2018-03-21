@@ -3,12 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Настройки конфига.
   /// </summary>
-  public class ConfigSettings
+  public class ConfigSettingsParser
   {
     #region Поля и свойства
 
@@ -256,7 +256,7 @@ namespace CommonLibrary.Settings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     /// <param name="settingsSource">Xml-источник настроек.</param>
-    public ConfigSettings(string settingsFilePath, XDocument settingsSource)
+    public ConfigSettingsParser(string settingsFilePath, XDocument settingsSource)
     {
       this.ParseRootSettingsSource(settingsFilePath, settingsSource);
     }

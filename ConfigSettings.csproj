@@ -41,13 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Misc\FileUtils.cs" />
-    <Compile Include="Misc\LinqExtensions.cs" />
-    <Compile Include="Misc\StreamUtils.cs" />
-    <Compile Include="Misc\StringUtils.cs" />
+    <Compile Include="Utils\FileUtils.cs" />
+    <Compile Include="Utils\LinqExtensions.cs" />
+    <Compile Include="Utils\StreamUtils.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AppConfig.cs" />
-    <Compile Include="Settings\BaseSetting.cs" />
     <Compile Include="Settings\ChangeConfig.cs" />
     <Compile Include="Settings\ConfigSettingsGetter.cs" />
     <Compile Include="Settings\ConfigSettingsResolver.cs" />
@@ -56,7 +55,7 @@
     <Compile Include="Settings\Patch\BlockAccessor.cs" />
     <Compile Include="Settings\Patch\BlockSetting.cs" />
     <Compile Include="Settings\Patch\ConfigPatch.cs" />
-    <Compile Include="Settings\Patch\ConfigSettings.cs" />
+    <Compile Include="Settings\Patch\ConfigSettingsParser.cs" />
     <Compile Include="Settings\Patch\ExpressionEvaluator.cs" />
     <Compile Include="Settings\Patch\LogSettingsPatch.cs" />
     <Compile Include="Settings\Patch\TextSetter.cs" />

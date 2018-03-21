@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using CommonLibrary.Settings.Patch;
+using ConfigSettings.Patch;
+using ConfigSettings.Utils;
 
-namespace CommonLibrary.Settings
+namespace ConfigSettings
 {
   /// <summary>
   /// Изменение конфига на основе правил.
@@ -272,10 +273,10 @@ namespace CommonLibrary.Settings
     /// </summary>
     /// <param name="settingsFileName">Путь к файлу настроек конфига.</param>
     /// <returns>Загруженные настройки конфига.</returns>
-    public static ConfigSettings LoadConfigSettings(string settingsFileName)
+    public static ConfigSettingsParser LoadConfigSettings(string settingsFileName)
     {
       var configSettingsPath = GetActualConfigSettingsPath(settingsFileName);
-      var settings = new ConfigSettings(configSettingsPath, File.Exists(configSettingsPath) ? XDocument.Load(configSettingsPath) : null);
+      var settings = new ConfigSettingsParser(configSettingsPath, File.Exists(configSettingsPath) ? XDocument.Load(configSettingsPath) : null);
       return settings;
     }
 

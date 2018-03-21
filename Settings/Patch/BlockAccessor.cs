@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Класс для управления доступностью блоков xml-конфига.
@@ -25,25 +25,25 @@ namespace CommonLibrary.Settings.Patch
     /// <summary>
     /// Применить настройки доступности блоков.
     /// </summary>
-    /// <param name="configSettings">Настройки конфига.</param>
-    public void ApplyAccess(ConfigSettings configSettings)
+    /// <param name="configSettingsParser">Настройки конфига.</param>
+    public void ApplyAccess(ConfigSettingsParser configSettingsParser)
     {
-      this.Apply(this.EnableBlocks, configSettings);
-      this.Apply(this.DisableBlocks, configSettings);
+      this.Apply(this.EnableBlocks, configSettingsParser);
+      this.Apply(this.DisableBlocks, configSettingsParser);
 
-      if (configSettings.HasContentBlocks)
-        this.Apply(this.SetBlockContent, configSettings);
+      if (configSettingsParser.HasContentBlocks)
+        this.Apply(this.SetBlockContent, configSettingsParser);
     }
 
     /// <summary>
     /// Применить настройки доступности блоков.
     /// </summary>
     /// <param name="action">Действие для управления доступностью.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
-    private void Apply(Action<XElement, ConfigSettings, List<XNode>> action, ConfigSettings configSettings)
+    /// <param name="configSettingsParser">Настройки конфига.</param>
+    private void Apply(Action<XElement, ConfigSettingsParser, List<XNode>> action, ConfigSettingsParser configSettingsParser)
     {
       var nodesToRemove = new List<XNode>();
-      action(this.config.Root, configSettings, nodesToRemove);
+      action(this.config.Root, configSettingsParser, nodesToRemove);
       foreach (var node in nodesToRemove)
         node.Remove();
     }
@@ -52,9 +52,9 @@ namespace CommonLibrary.Settings.Patch
     /// Сделать блоки xml-элемента недоступными (закомментировать элементы).
     /// </summary>
     /// <param name="element">Xml-элемент.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <param name="nodesToRemove">Узлы для последующего удаления.</param>
-    private void DisableBlocks(XElement element, ConfigSettings configSettings, List<XNode> nodesToRemove)
+    private void DisableBlocks(XElement element, ConfigSettingsParser configSettingsParser, List<XNode> nodesToRemove)
     {
       var needDisableBlock = false;
       foreach (var node in element.Nodes())
@@ -68,7 +68,7 @@ namespace CommonLibrary.Settings.Patch
           {
             var blockName = comment.Substring(2, comment.Length - 3);
             var negateDisabled = this.IsNegatedBlockName(ref blockName);
-            var blockDisabled = configSettings.IsBlockDisabled(blockName);
+            var blockDisabled = configSettingsParser.IsBlockDisabled(blockName);
             if (negateDisabled)
               blockDisabled = !blockDisabled;
 
@@ -86,7 +86,7 @@ namespace CommonLibrary.Settings.Patch
             nodesToRemove.Add(node);
             needDisableBlock = false;
           }
-          this.DisableBlocks(elementNode, configSettings, nodesToRemove);
+          this.DisableBlocks(elementNode, configSettingsParser, nodesToRemove);
         }
       }
     }
@@ -95,9 +95,9 @@ namespace CommonLibrary.Settings.Patch
     /// Сделать блоки xml-элемента доступными (раскомментировать элементы).
     /// </summary>
     /// <param name="element">Xml-элемент.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <param name="nodesToRemove">Узлы для последующего удаления.</param>
-    private void EnableBlocks(XElement element, ConfigSettings configSettings, List<XNode> nodesToRemove)
+    private void EnableBlocks(XElement element, ConfigSettingsParser configSettingsParser, List<XNode> nodesToRemove)
     {
       var needEnableBlock = false;
       foreach (var node in element.Nodes())
@@ -111,7 +111,7 @@ namespace CommonLibrary.Settings.Patch
           {
             var blockName = comment.Substring(2, comment.Length - 3);
             var negateEnabled = this.IsNegatedBlockName(ref blockName);
-            var blockEnabled = configSettings.IsBlockEnabled(blockName);
+            var blockEnabled = configSettingsParser.IsBlockEnabled(blockName);
             if (negateEnabled)
               blockEnabled = !blockEnabled;
 
@@ -132,7 +132,7 @@ namespace CommonLibrary.Settings.Patch
         else if (elementNode != null)
         {
           needEnableBlock = false;
-          this.EnableBlocks(elementNode, configSettings, nodesToRemove);
+          this.EnableBlocks(elementNode, configSettingsParser, nodesToRemove);
         }
       }
     }
@@ -141,9 +141,9 @@ namespace CommonLibrary.Settings.Patch
     /// Установить содержимое блока.
     /// </summary>
     /// <param name="element">Xml-элемент.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <param name="nodesToRemove">Узлы для последующего удаления.</param>
-    private void SetBlockContent(XElement element, ConfigSettings configSettings, List<XNode> nodesToRemove)
+    private void SetBlockContent(XElement element, ConfigSettingsParser configSettingsParser, List<XNode> nodesToRemove)
     {
       string blockContent = null;
       foreach (var node in element.Nodes())
@@ -156,7 +156,7 @@ namespace CommonLibrary.Settings.Patch
           if (comment.Length > 3 && comment.StartsWith("{~", StringComparison.Ordinal) && comment.EndsWith("}", StringComparison.Ordinal))
           {
             var blockName = comment.Substring(2, comment.Length - 3);
-            blockContent = configSettings.GetBlockContent(blockName);
+            blockContent = configSettingsParser.GetBlockContent(blockName);
           }
           else
             blockContent = null;
@@ -170,7 +170,7 @@ namespace CommonLibrary.Settings.Patch
               elementNode.Add(subNode);
             blockContent = null;
           }
-          this.SetBlockContent(elementNode, configSettings, nodesToRemove);
+          this.SetBlockContent(elementNode, configSettingsParser, nodesToRemove);
         }
       }
     }

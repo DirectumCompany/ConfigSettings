@@ -1,18 +1,18 @@
 ﻿using System;
-using CommonLibrary.Settings.Patch;
+using ConfigSettings.Patch;
 
-namespace CommonLibrary.Settings
+namespace ConfigSettings
 {
   /// <summary>
   /// Получатель настроек.
   /// </summary>
   public class ConfigSettingsGetter
   {
-    private readonly ConfigSettings configSettings;
+    private readonly ConfigSettingsParser configSettingsParser;
 
     public ConfigSettingsGetter()
     {
-      this.configSettings = ConfigSettingsResolver.DefaultConfigSettings;
+      this.configSettingsParser = ConfigSettingsResolver.DefaultConfigSettingsParser;
     }
 
     /// <summary>
@@ -47,10 +47,10 @@ namespace CommonLibrary.Settings
     /// <returns>Настройка.</returns>
     public T Get<T>(string name, Func<T> getDefaultValue)
     {
-      if (!this.configSettings.HasVariable(name))
+      if (!this.configSettingsParser.HasVariable(name))
         return getDefaultValue();
 
-      var value = this.configSettings.GetVariableValue(name);
+      var value = this.configSettingsParser.GetVariableValue(name);
       if (string.IsNullOrEmpty(value))
         return getDefaultValue();
 
@@ -59,7 +59,7 @@ namespace CommonLibrary.Settings
 
     public void Set<T>(string name, T value)
     {
-      this.configSettings.SetVariableValue(name, value.ToString());
+      this.configSettingsParser.SetVariableValue(name, value.ToString());
     }
   }
 }

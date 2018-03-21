@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Класс для установки значений атрибутов xml-элементов конфига.
@@ -52,13 +52,13 @@ namespace CommonLibrary.Settings.Patch
 
     #region Базовый класс
 
-    public override void Apply(XElement element, ConfigSettings configSettings, bool isAncestorSetter)
+    public override void Apply(XElement element, ConfigSettingsParser configSettingsParser, bool isAncestorSetter)
     {
       if (!this.IsElelementSuitable(element, isAncestorSetter))
         return;
       var isExistingAttribute = element.Attribute(this.AttributeName) != null;
       var attributeValue = isExistingAttribute ? element.Attribute(this.AttributeName).Value : string.Empty;
-      var result = this.EvaluateValue(attributeValue, configSettings);
+      var result = this.EvaluateValue(attributeValue, configSettingsParser);
       if (result != null)
         element.SetAttributeValue(this.AttributeName, result != "_REMOVE_" ? result : null);
     }

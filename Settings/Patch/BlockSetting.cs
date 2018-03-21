@@ -1,4 +1,4 @@
-﻿namespace CommonLibrary.Settings.Patch
+﻿namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Настройки блока.

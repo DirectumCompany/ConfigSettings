@@ -1,14 +1,14 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Класс для установки значения текста xml-элемента конфига.
   /// </summary>
   public class TextSetter : BaseSetter
   {
-    public override void Apply(XElement element, ConfigSettings configSettings, bool isAncestorSetter)
+    public override void Apply(XElement element, ConfigSettingsParser configSettingsParser, bool isAncestorSetter)
     {
       if (isAncestorSetter)
         return;
@@ -22,7 +22,7 @@ namespace CommonLibrary.Settings.Patch
       }
 
       var textValue = textNode.Value;
-      var result = this.EvaluateValue(textValue, configSettings);
+      var result = this.EvaluateValue(textValue, configSettingsParser);
       if (result != null)
       {
         var leftWhitespace = textValue.Substring(0, textValue.Length - textValue.TrimStart().Length);

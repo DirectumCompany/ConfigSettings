@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using CommonLibrary.Settings.Patch;
+using ConfigSettings.Patch;
 
-namespace CommonLibrary.Settings
+namespace ConfigSettings
 {
   /// <summary>
   /// ConfigSettingsResolver.
@@ -11,12 +11,12 @@ namespace CommonLibrary.Settings
   {
     private static DateTime configSettingsLastWriteTime = DateTime.MinValue;
     
-    private static ConfigSettings cachedConfigSettings;
+    private static ConfigSettingsParser cachedConfigSettingsParser;
 
     /// <summary>
     /// Настройки по умолчанию.
     /// </summary>
-    public static ConfigSettings DefaultConfigSettings
+    public static ConfigSettingsParser DefaultConfigSettingsParser
     {
       get
       {
@@ -26,20 +26,20 @@ namespace CommonLibrary.Settings
 
         var lastWriteTime = File.GetLastWriteTimeUtc(configSettingsPath);
         if (lastWriteTime == configSettingsLastWriteTime)
-          return cachedConfigSettings;
+          return cachedConfigSettingsParser;
 
         configSettingsLastWriteTime = lastWriteTime;
 
         try
         {
-          cachedConfigSettings = ChangeConfig.LoadConfigSettings(configSettingsPath);
+          cachedConfigSettingsParser = ChangeConfig.LoadConfigSettings(configSettingsPath);
         }
         catch (Exception)
         {
           return null;
         }
 
-        return cachedConfigSettings;
+        return cachedConfigSettingsParser;
       }
     }
   }

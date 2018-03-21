@@ -1,7 +1,6 @@
-﻿using System.IO;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
-namespace CommonLibrary
+namespace ConfigSettings.Utils
 {
   /// <summary>
   /// Класс-расширение для работы с потоками.
@@ -19,22 +18,6 @@ namespace CommonLibrary
       for (int i = 0; i <= hash.Length - 1; i++)
         resultHashString += hash[i].ToString("x2");
       return resultHashString;
-    }
-
-    /// <summary>
-    /// Метод-расширение для получение MD5-хэша потока.
-    /// </summary>
-    /// <param name="stream">Поток.</param>
-    /// <returns>MD5-хэш потока.</returns>
-    public static string GetMD5Hash(this Stream stream)
-    {
-      // Для ComputeHash важная позиция потока.
-      if (stream.CanSeek)
-        stream.Position = 0;
-
-      // TODO: Возможно лучше использовать классы из ICSharpCode.SharpZipLib.Checksums, т.к. все равно используем эту библиотеку.
-      using (var hashAlgorithm = (HashAlgorithm)new MD5CryptoServiceProvider())
-        return GetHashString(hashAlgorithm.ComputeHash(stream));
     }
 
     /// <summary>

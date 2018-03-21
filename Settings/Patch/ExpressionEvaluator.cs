@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CommonLibrary.Settings.Patch
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Парсер функций.
@@ -80,13 +80,13 @@ namespace CommonLibrary.Settings.Patch
     /// Получить фактическое значение для установки.
     /// </summary>
     /// <param name="currentValue">Текущее значение.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <returns>Фактическое (новое) значение.</returns>
-    public string EvaluateValue(string currentValue, ConfigSettings configSettings)
+    public string EvaluateValue(string currentValue, ConfigSettingsParser configSettingsParser)
     {
       if (string.IsNullOrEmpty(this.FunctionName))
         return null;
-      var actualArgumentsValues = this.FunctionArguments.Select(arg => this.GetActualArgumentValue(arg, configSettings)).ToArray();
+      var actualArgumentsValues = this.FunctionArguments.Select(arg => this.GetActualArgumentValue(arg, configSettingsParser)).ToArray();
       if (actualArgumentsValues.Any(v => v == null))
         return null;
       if (this.FunctionName == IdentityFunctionName)
@@ -110,15 +110,15 @@ namespace CommonLibrary.Settings.Patch
     /// Получить фактическое значение аргумента.
     /// </summary>
     /// <param name="argumentExpression">Строка с выражением-аргументом.</param>
-    /// <param name="configSettings">Настройки конфига.</param>
+    /// <param name="configSettingsParser">Настройки конфига.</param>
     /// <returns>Фактическое значение аргумента.</returns>
-    private string GetActualArgumentValue(string argumentExpression, ConfigSettings configSettings)
+    private string GetActualArgumentValue(string argumentExpression, ConfigSettingsParser configSettingsParser)
     {
       if (argumentExpression.StartsWith(FunctionPrefix, StringComparison.Ordinal))
-        return new ExpressionEvaluator(argumentExpression).EvaluateValue(string.Empty, configSettings);
+        return new ExpressionEvaluator(argumentExpression).EvaluateValue(string.Empty, configSettingsParser);
       if (argumentExpression.Length >= 2 && argumentExpression[0] == '"' && argumentExpression[argumentExpression.Length - 1] == '"')
         return argumentExpression.Substring(1, argumentExpression.Length - 2);
-      return configSettings.HasVariable(argumentExpression) ? configSettings.GetVariableValue(argumentExpression) : null;
+      return configSettingsParser.HasVariable(argumentExpression) ? configSettingsParser.GetVariableValue(argumentExpression) : null;
     }
 
     /// <summary>

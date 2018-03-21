@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace CommonLibrary.Settings
+namespace ConfigSettings
 {
   /// <summary>
   /// Класс предопределенных специальных папок платформы.
@@ -20,12 +20,12 @@ namespace CommonLibrary.Settings
       /// <summary>
       /// Имя компании.
       /// </summary>
-      public string CompanyName { get; private set; }
+      public string CompanyName { get; }
 
       /// <summary>
       /// Имя продукта.
       /// </summary>
-      public string ProductName { get; private set; }
+      public string ProductName { get; }
 
       /// <summary>
       /// Конструктор по умолчанию.
@@ -72,17 +72,6 @@ namespace CommonLibrary.Settings
     public static string ProductUserApplicationData(params string[] subpath)
     {
       return ProductUserApplicationData(mainAssemblyProductInfo.Value, subpath);
-    }
-
-    /// <summary>
-    /// Создать и вернуть подпапку в папке продукта профиля пользователя.
-    /// </summary>
-    /// <param name="assemblyWithInfo">Сборка содержащая информацию о продукте.</param>
-    /// <param name="subpath">Путь к подпапкам.</param>
-    /// <returns>Папка.</returns>
-    public static string ProductUserApplicationData(Assembly assemblyWithInfo, params string[] subpath)
-    {
-      return ProductUserApplicationData(new ProductInfo(assemblyWithInfo), subpath);
     }
 
     #endregion
