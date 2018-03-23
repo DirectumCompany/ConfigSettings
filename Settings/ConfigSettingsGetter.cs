@@ -10,11 +10,6 @@ namespace ConfigSettings
   {
     private readonly ConfigSettingsParser configSettingsParser;
 
-    public ConfigSettingsGetter()
-    {
-      this.configSettingsParser = ConfigSettingsResolver.DefaultConfigSettingsParser;
-    }
-
     /// <summary>
     /// Получить настройку.
     /// </summary>
@@ -60,6 +55,16 @@ namespace ConfigSettings
     public void Set<T>(string name, T value)
     {
       this.configSettingsParser?.SetVariableValue(name, value.ToString());
+    }
+
+    public ConfigSettingsGetter(ConfigSettingsParser configSettingsParser)
+    {
+      this.configSettingsParser = configSettingsParser;
+    }
+
+    public ConfigSettingsGetter()
+    {
+      this.configSettingsParser = ConfigSettingsResolver.DefaultConfigSettingsParser;
     }
   }
 }
