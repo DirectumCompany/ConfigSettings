@@ -47,7 +47,7 @@ namespace ConfigSettings
     /// <returns>Настройка.</returns>
     public T Get<T>(string name, Func<T> getDefaultValue)
     {
-      if (!this.configSettingsParser.HasVariable(name))
+      if (!this.configSettingsParser?.HasVariable(name) ?? true)
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);
@@ -59,7 +59,7 @@ namespace ConfigSettings
 
     public void Set<T>(string name, T value)
     {
-      this.configSettingsParser.SetVariableValue(name, value.ToString());
+      this.configSettingsParser?.SetVariableValue(name, value.ToString());
     }
   }
 }
