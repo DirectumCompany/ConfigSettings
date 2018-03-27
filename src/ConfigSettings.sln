@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigSettings", "ConfigSettings.csproj", "{2411FC38-901F-4E58-AB3F-0FF0F5236766}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigSettings", "ConfigSettings\ConfigSettings.csproj", "{2411FC38-901F-4E58-AB3F-0FF0F5236766}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigSettingsTests", "ConfigSettingsTests\ConfigSettingsTests.csproj", "{7D24670C-445D-4B19-9321-E3F8DD38D4C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigSettingsTests", "Tests\ConfigSettingsTests.csproj", "{7D24670C-445D-4B19-9321-E3F8DD38D4C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace ConfigSettings
+namespace ConfigSettings.Internal
 {
   /// <summary>
   /// Класс предопределенных специальных папок платформы.

@@ -36,22 +36,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DiffPlex">
-      <HintPath>..\lib\DiffPlex\DiffPlex.dll</HintPath>
+      <HintPath>..\..\lib\DiffPlex\DiffPlex.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions">
-      <HintPath>..\lib\FluentAssertions\FluentAssertions.dll</HintPath>
+      <HintPath>..\..\lib\FluentAssertions\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions.Core">
-      <HintPath>..\lib\FluentAssertions\FluentAssertions.Core.dll</HintPath>
+      <HintPath>..\..\lib\FluentAssertions\FluentAssertions.Core.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\lib\NUnit\nunit.framework.dll</HintPath>
+      <HintPath>..\..\lib\NUnit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="TestStack.BDDfy">
-      <HintPath>..\lib\BddFy\TestStack.BDDfy.dll</HintPath>
+      <HintPath>..\..\lib\BddFy\TestStack.BDDfy.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Choose>
@@ -100,7 +100,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ConfigSettings.csproj">
+    <ProjectReference Include="..\ConfigSettings\ConfigSettings.csproj">
       <Project>{2411fc38-901f-4e58-ab3f-0ff0f5236766}</Project>
       <Name>ConfigSettings</Name>
     </ProjectReference>

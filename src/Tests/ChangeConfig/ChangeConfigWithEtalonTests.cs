@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using TestStack.BDDfy;
+using ConfigSettings.Internal;
 
 namespace ConfigSettings.Tests
 {
