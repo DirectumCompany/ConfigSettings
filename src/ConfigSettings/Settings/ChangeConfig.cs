@@ -19,7 +19,7 @@ namespace ConfigSettings
     /// <summary>
     /// Дефолтное имя файла с настройками конфига.
     /// </summary>
-    private const string DefaultConfigSettingsFileName = "_ConfigSettings.xml";
+    public const string DefaultConfigSettingsFileName = "_ConfigSettings.xml";
 
     /// <summary>
     /// Спецзначение для несуществующего файла настроек конфига.

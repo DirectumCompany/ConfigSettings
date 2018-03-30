@@ -15,17 +15,22 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Переменные (имя, значение).
     /// </summary>
-    private IDictionary<string, string> variables;
+    private readonly IDictionary<string, string> variables = new Dictionary<string, string>();
 
     /// <summary>
     /// Метапеременные.
     /// </summary>
-    private IDictionary<string, string> metaVariables;
+    private readonly IDictionary<string, string> metaVariables = new Dictionary<string, string>();
 
     /// <summary>
     /// Блоки.
     /// </summary>
-    private IDictionary<string, BlockSetting> blocks;
+    private readonly IDictionary<string, BlockSetting> blocks = new Dictionary<string, BlockSetting>();    
+    
+    /// <summary>
+    /// Блоки.
+    /// </summary>
+    private readonly IDictionary<string, string> rootImports = new Dictionary<string, string>();
 
     private bool isParsed;
 
@@ -142,6 +147,11 @@ namespace ConfigSettings.Patch
       return this.metaVariables[variableName];
     }
 
+    public bool HasImportFrom(string fileName)
+    {
+      return this.rootImports.ContainsKey(fileName);
+    }
+
     /// <summary>
     /// Распарсить xml-источник настроек.
     /// </summary>
@@ -154,14 +164,10 @@ namespace ConfigSettings.Patch
 
       this.isParsed = true;
 
-      this.variables = new Dictionary<string, string>();
-      this.metaVariables = new Dictionary<string, string>();
-      this.blocks = new Dictionary<string, BlockSetting>();
-
-      this.ParseSettingsSource(settingsFilePath, settingsSource);
+      this.ParseSettingsSource(settingsFilePath, settingsSource, true);
     }
 
-    private void ParseSettingsSource(string settingsFilePath, XDocument settings)
+    private void ParseSettingsSource(string settingsFilePath, XDocument settings, bool fromRoot)
     {
       if (settings?.Root == null)
         return;
@@ -171,7 +177,7 @@ namespace ConfigSettings.Patch
       {
         var elementName = element.Name.LocalName;
         if (elementName == "import")
-          this.ParseImport(settingsFilePath, element);
+          this.ParseImport(settingsFilePath, element, fromRoot);
       }
 
       // Затем обрабатываем остальные элементы.
@@ -188,7 +194,7 @@ namespace ConfigSettings.Patch
       }
     }
 
-    private void ParseImport(string settingsFilePath, XElement element)
+    private void ParseImport(string settingsFilePath, XElement element, bool fromRoot)
     {
       var fromAttribute = element.Attribute("from");
       if (string.IsNullOrEmpty(fromAttribute?.Value))
@@ -200,7 +206,10 @@ namespace ConfigSettings.Patch
       if (!File.Exists(absolutePath))
         return;
 
-      this.ParseSettingsSource(absolutePath, XDocument.Load(absolutePath));
+      if (fromRoot)
+        this.rootImports[Path.GetFileName(absolutePath)] = absolutePath;
+
+      this.ParseSettingsSource(absolutePath, XDocument.Load(absolutePath), false);
     }
 
     private void ParseBlock(XElement element)
