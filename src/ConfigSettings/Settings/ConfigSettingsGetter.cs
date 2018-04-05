@@ -42,7 +42,7 @@ namespace ConfigSettings
     /// <returns>Настройка.</returns>
     public T Get<T>(string name, Func<T> getDefaultValue)
     {
-      if (!this.configSettingsParser?.HasVariable(name) ?? true)
+      if (!this.configSettingsParser.HasVariable(name))
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);
@@ -54,32 +54,31 @@ namespace ConfigSettings
 
     public void Set<T>(string name, T value)
     {
-      this.configSettingsParser?.SetVariableValue(name, value.ToString());
+      this.configSettingsParser.SetVariableValue(name, value.ToString());
     }
 
     public void SetBlock(string name, bool? enabled, string value)
     {
-      this.configSettingsParser?.SetBlockValue(name, enabled, value);
+      this.configSettingsParser.SetBlockValue(name, enabled, value);
     }
 
     public void SetImport(string filePath)
     {
-      this.configSettingsParser?.SetImportFrom(filePath);
+      this.configSettingsParser.SetImportFrom(filePath);
     }
 
     public void Save()
     {
-      this.configSettingsParser?.Save();
+      this.configSettingsParser.Save();
     }
 
     public ConfigSettingsGetter(ConfigSettingsParser configSettingsParser)
     {
-      this.configSettingsParser = configSettingsParser;
+      this.configSettingsParser = configSettingsParser ?? new ConfigSettingsParser(null);
     }
 
-    public ConfigSettingsGetter()
+    public ConfigSettingsGetter() : this(ConfigSettingsResolver.DefaultConfigSettingsParser)
     {
-      this.configSettingsParser = ConfigSettingsResolver.DefaultConfigSettingsParser;
     }
   }
 }

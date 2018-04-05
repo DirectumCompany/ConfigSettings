@@ -71,6 +71,7 @@
     <Compile Include="ChangeConfig\ChangeConfigWithEtalonTests.cs" />
     <Compile Include="ConfigSettingsGetterTests.cs" />
     <Compile Include="ConfigSettingsParserTests.cs" />
+    <Compile Include="DelegateExtensions.cs" />
     <Compile Include="TestEnvironment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextDiffer.cs" />

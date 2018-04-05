@@ -233,6 +233,10 @@ namespace ConfigSettings.Patch
         return;
 
       this.isParsed = true;
+
+      if (string.IsNullOrEmpty(settingsFilePath))
+        return;
+
       this.rootSettingsFilePath = settingsFilePath;
 
       // Добавляем корневой элемент.
@@ -329,7 +333,10 @@ namespace ConfigSettings.Patch
     }
 
     public void Save()
-    { 
+    {
+      if (!this.rootImports.Keys.Any())
+        throw new InvalidOperationException("Cannot save. rootImports is empty.");
+
       foreach (var filePath in this.rootImports.Keys)
       {
         var rootElement = new XElement("settings");
@@ -378,9 +385,9 @@ namespace ConfigSettings.Patch
     /// Конструктор.
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
-    /// <param name="settingsSource">Xml-источник настроек.</param>
-    public ConfigSettingsParser(string settingsFilePath, XDocument settingsSource)
+    public ConfigSettingsParser(string settingsFilePath)
     {
+      var settingsSource = File.Exists(settingsFilePath) ? XDocument.Load(settingsFilePath) : null;
       this.ParseRootSettingsSource(settingsFilePath, settingsSource);
     }
 

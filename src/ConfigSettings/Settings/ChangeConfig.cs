@@ -277,7 +277,7 @@ namespace ConfigSettings
     public static ConfigSettingsParser LoadConfigSettings(string settingsFileName)
     {
       var configSettingsPath = GetActualConfigSettingsPath(settingsFileName);
-      var settings = new ConfigSettingsParser(configSettingsPath, File.Exists(configSettingsPath) ? XDocument.Load(configSettingsPath) : null);
+      var settings = new ConfigSettingsParser(configSettingsPath);
       return settings;
     }
 

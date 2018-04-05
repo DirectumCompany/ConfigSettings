@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Xml.Linq;
 using ConfigSettings.Patch;
 using ConfigSettings.Utils;
 using FluentAssertions;
@@ -48,7 +47,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenGetBooleanWithoutParserThenValueShoudBeFalse()
     {
-      var getter = CreateNullConfigSettingsGetter();
+      var getter = CreateConfigSettingsGetter(null);
       getter.Get<bool>("UNEXISTED_BOOLEAN").Should().BeFalse();
     }
 
@@ -171,14 +170,27 @@ namespace ConfigSettings.Tests
 ");
     }
 
-    private static ConfigSettingsGetter CreateConfigSettingsGetter(string configSettingsPath)
+    [Test]
+    public void WhenSetValueWithNullConfigSettingsParserThenExceptionShouldBeRaisen()
     {
-      return new ConfigSettingsGetter(new ConfigSettingsParser(configSettingsPath, XDocument.Load(configSettingsPath)));
+      var getter = CreateConfigSettingsGetter(null);
+      getter.Get<bool>("NEW_VALUE").Should().BeFalse();
+      getter.Set("NEW_VALUE", true);
+      getter.Get<bool>("NEW_VALUE").Should().BeTrue();
     }
 
-    private static ConfigSettingsGetter CreateNullConfigSettingsGetter()
+    [Test]
+    public void WhenSaveNullConfigSettingsParserThenSaveShouldNotWork()
     {
-      return new ConfigSettingsGetter(null);
+      var getter = CreateConfigSettingsGetter(null);
+      getter.Set("NEW_VALUE", true);
+      var exception = ((MethodThatThrows)delegate { getter.Save(); }).GetException();
+      exception.Should().BeOfType<InvalidOperationException>();
+    }
+
+    private static ConfigSettingsGetter CreateConfigSettingsGetter(string configSettingsPath)
+    {
+      return new ConfigSettingsGetter(new ConfigSettingsParser(configSettingsPath));
     }
 
     private string CreateSettings(string settings)

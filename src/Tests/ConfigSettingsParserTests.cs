@@ -18,7 +18,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveVariablesInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath, null);
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       parser.SetVariableValue("testVariableName", "testVariableValue");
       parser.Save();
 
@@ -31,7 +31,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveMetaVariableInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath, null);
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       parser.SetMetaVariableValue("testMetaVariableName", "testVariableValue");
       parser.Save();
 
@@ -44,7 +44,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveBlockInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath, null);
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       parser.SetBlockValue("testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
     <tenant name=""beta"" user=""alpha_user"" />");
       parser.Save();
@@ -61,7 +61,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveImportFromInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath, null);
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       parser.SetImportFrom(@"test\file\path");
       parser.Save();
 
@@ -74,7 +74,7 @@ namespace ConfigSettings.Tests
     [Test]
     public void TestHasImportFromExistedFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath, null);
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       parser.SetImportFrom(@"test\file\path");
       parser.HasImportFrom("path").Should().BeTrue();
       parser.HasImportFrom(@"test\file\path").Should().BeTrue();
@@ -87,7 +87,7 @@ namespace ConfigSettings.Tests
     {
       var unexistedImport = Guid.NewGuid() + ".xml";
       var settings = this.CreateSettings($@"<import from=""{unexistedImport}"" />");
-      var parser = new ConfigSettingsParser(settings, XDocument.Load(settings));
+      var parser = new ConfigSettingsParser(settings);
       parser.HasImportFrom(unexistedImport).Should().BeTrue();
     }
 
