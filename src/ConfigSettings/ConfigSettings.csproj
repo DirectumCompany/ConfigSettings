@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Settings\Patch\VariableValue.cs" />
     <Compile Include="Utils\DirectoryUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\GuidExtensions.cs" />

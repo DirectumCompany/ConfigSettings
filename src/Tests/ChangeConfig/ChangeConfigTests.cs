@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using ConfigSettings;
 using ConfigSettings.Utils;
 using FluentAssertions;
 using NUnit.Framework;

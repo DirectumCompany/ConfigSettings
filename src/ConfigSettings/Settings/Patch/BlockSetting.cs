@@ -15,10 +15,13 @@
     /// </summary>
     public string Content { get; }
 
-    public BlockSetting(bool? isEnabled, string content)
+    public string FilePath { get; }
+
+    public BlockSetting(bool? isEnabled, string content, string filePath)
     {
       this.IsEnabled = isEnabled;
       this.Content = content;
+      this.FilePath = filePath;
     }
   }
 }

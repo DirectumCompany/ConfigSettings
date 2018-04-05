@@ -57,6 +57,21 @@ namespace ConfigSettings
       this.configSettingsParser?.SetVariableValue(name, value.ToString());
     }
 
+    public void SetBlock(string name, bool? enabled, string value)
+    {
+      this.configSettingsParser?.SetBlockValue(name, enabled, value);
+    }
+
+    public void SetImport(string filePath)
+    {
+      this.configSettingsParser?.SetImportFrom(filePath);
+    }
+
+    public void Save()
+    {
+      this.configSettingsParser?.Save();
+    }
+
     public ConfigSettingsGetter(ConfigSettingsParser configSettingsParser)
     {
       this.configSettingsParser = configSettingsParser;
