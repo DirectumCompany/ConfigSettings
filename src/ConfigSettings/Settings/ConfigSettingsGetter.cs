@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using ConfigSettings.Patch;
 
 namespace ConfigSettings
@@ -49,7 +50,10 @@ namespace ConfigSettings
       if (string.IsNullOrEmpty(value))
         return getDefaultValue();
 
-      return (T)Convert.ChangeType(value, typeof(T));
+      var converter = TypeDescriptor.GetConverter(typeof(T));
+      return converter.CanConvertFrom(typeof(string)) 
+        ? (T)converter.ConvertFrom(value) 
+        : getDefaultValue();
     }
 
     public void Set<T>(string name, T value)

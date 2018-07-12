@@ -188,6 +188,14 @@ namespace ConfigSettings.Tests
       exception.Should().BeOfType<InvalidOperationException>();
     }
 
+    [Test]
+    public void WhenParseTimestampFromString()
+    {
+      var getter = CreateConfigSettingsGetter(this.CreateSettings(@"<var name=""FOLDER_AUTO_UPDATE_PERIOD"" value=""00:10:00"" />"));
+      var period = getter.Get<TimeSpan>("FOLDER_AUTO_UPDATE_PERIOD");
+      period.TotalSeconds.Should().Be(600.0);
+    }
+
     private static ConfigSettingsGetter CreateConfigSettingsGetter(string configSettingsPath)
     {
       return new ConfigSettingsGetter(new ConfigSettingsParser(configSettingsPath));
