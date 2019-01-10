@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using ConfigSettings.Utils;
 using ConfigSettings.Internal;
 using ConfigSettings.Patch;
-using ConfigSettings.Utils;
 
 namespace ConfigSettings
 {

@@ -8,8 +8,6 @@ namespace ConfigSettings.Utils
   /// </summary>
   public static class StringUtils
   {
-    #region Методы
-
     /// <summary>
     /// Вычислить MD5-хеш для строки.
     /// </summary>
@@ -18,11 +16,9 @@ namespace ConfigSettings.Utils
     public static string GetMD5Hash(this string value)
     {
       if (value == null)
-        throw new ArgumentNullException(nameof(value));
+        throw new ArgumentNullException("value");
 
       return Encoding.UTF8.GetBytes(value).GetMD5Hash();
     }
-
-    #endregion
   }
 }

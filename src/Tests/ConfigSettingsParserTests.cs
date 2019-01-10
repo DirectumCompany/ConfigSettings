@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Xml.Linq;
-using ConfigSettings.Patch;
 using ConfigSettings.Utils;
+using ConfigSettings.Patch;
 using FluentAssertions;
 using NUnit.Framework;
 

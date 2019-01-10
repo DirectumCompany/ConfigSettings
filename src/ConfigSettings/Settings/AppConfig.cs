@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+#if NET45
+
 namespace ConfigSettings
 {
   /// <summary>
@@ -68,3 +70,5 @@ namespace ConfigSettings
     }
   }
 }
+
+#endif

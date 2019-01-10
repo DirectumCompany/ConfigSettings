@@ -20,6 +20,7 @@ namespace ConfigSettings.Utils
       return resultHashString;
     }
 
+  
     /// <summary>
     /// Метод-расширение для получения MD5-хеша массива байт.
     /// </summary>
@@ -29,6 +30,6 @@ namespace ConfigSettings.Utils
     {
       using (var algorythmMd5 = (HashAlgorithm)new MD5CryptoServiceProvider())
         return GetHashString(algorythmMd5.ComputeHash(data));
-    }
+    }          
   }
 }

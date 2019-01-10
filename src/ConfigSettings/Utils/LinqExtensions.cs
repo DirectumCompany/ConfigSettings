@@ -16,13 +16,13 @@ namespace ConfigSettings.Utils
     /// <returns>True, если содержимое массивов эквивалетно или они оба null. Иначе - false.</returns>
     public static bool SafeSequenceEqual<T>(this T[] first, T[] second)
     {
-      if (ReferenceEquals(first, second))
+      if (object.ReferenceEquals(first, second))
         return true;
       if (first == null && second != null)
         return false;
       if (first != null && second == null)
         return false;
       return first.SequenceEqual(second);
-    }    
+    }
   }
 }
