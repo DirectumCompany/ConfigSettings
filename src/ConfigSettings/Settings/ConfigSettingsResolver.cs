@@ -14,33 +14,30 @@ namespace ConfigSettings
     private static ConfigSettingsParser cachedConfigSettingsParser;
 
     /// <summary>
-    /// Настройки по умолчанию.
+    /// Создать парсер дефолтных настроек.
     /// </summary>
-    public static ConfigSettingsParser DefaultConfigSettingsParser
+    public static ConfigSettingsParser CreateDefaultConfigSettingsParser()
     {
-      get
-      {
-        var configSettingsPath = ChangeConfig.GetActualConfigSettingsPath();
-        if (string.IsNullOrEmpty(configSettingsPath) || !File.Exists(configSettingsPath))
-          return null;
+      var configSettingsPath = ChangeConfig.GetActualConfigSettingsPath();
+      if (string.IsNullOrEmpty(configSettingsPath) || !File.Exists(configSettingsPath))
+        return null;
 
-        var lastWriteTime = File.GetLastWriteTimeUtc(configSettingsPath);
-        if (lastWriteTime == configSettingsLastWriteTime)
-          return cachedConfigSettingsParser;
-
-        configSettingsLastWriteTime = lastWriteTime;
-
-        try
-        {
-          cachedConfigSettingsParser = ChangeConfig.LoadConfigSettings(configSettingsPath);
-        }
-        catch (Exception)
-        {
-          return null;
-        }
-
+      var lastWriteTime = File.GetLastWriteTimeUtc(configSettingsPath);
+      if (lastWriteTime == configSettingsLastWriteTime)
         return cachedConfigSettingsParser;
+
+      configSettingsLastWriteTime = lastWriteTime;
+
+      try
+      {
+        cachedConfigSettingsParser = ChangeConfig.CreateConfigSettingsParser(configSettingsPath);
       }
+      catch (Exception)
+      {
+        return null;
+      }
+
+      return cachedConfigSettingsParser;
     }
   }
 }

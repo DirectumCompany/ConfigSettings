@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Xml.Linq;
 using ConfigSettings.Patch;
 
 namespace ConfigSettings
@@ -9,7 +10,7 @@ namespace ConfigSettings
   /// </summary>
   public class ConfigSettingsGetter
   {
-    private readonly ConfigSettingsParser configSettingsParser;
+    protected readonly ConfigSettingsParser configSettingsParser;
 
     /// <summary>
     /// Получить настройку.
@@ -56,6 +57,16 @@ namespace ConfigSettings
         : getDefaultValue();
     }
 
+    public string GetBlock(string name)
+    {
+      return this.configSettingsParser.GetBlockContent(name);
+    }
+
+    public XElement GetXmlBlock(string name)
+    {
+      return this.configSettingsParser.GetXmlBlockContent(name);
+    }
+
     public void Set<T>(string name, T value)
     {
       this.configSettingsParser.SetVariableValue(name, value.ToString());
@@ -81,7 +92,7 @@ namespace ConfigSettings
       this.configSettingsParser = configSettingsParser ?? new ConfigSettingsParser(null);
     }
 
-    public ConfigSettingsGetter() : this(ConfigSettingsResolver.DefaultConfigSettingsParser)
+    public ConfigSettingsGetter() : this(ConfigSettingsResolver.CreateDefaultConfigSettingsParser())
     {
     }
   }

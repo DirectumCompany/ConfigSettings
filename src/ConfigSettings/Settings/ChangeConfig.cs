@@ -208,14 +208,14 @@ namespace ConfigSettings
       lock (lockInstance)
       {
         var config = XDocument.Load(currentConfigPath);
-        var settings = LoadConfigSettings(settingsFileName);
+        var parser = CreateConfigSettingsParser(settingsFileName);
 
-        new ConfigPatch(config, settings).Patch();
+        new ConfigPatch(config, parser).Patch();
         new LogSettingsPatch(config, currentConfigPath).Patch();
 
         bool forceUseAppDataPath;
-        var liveConfigPath = settings.HasMetaVariable(ForceUseAppDataPathMetaVariable) &&
-                                bool.TryParse(settings.GetMetaVariableValue(ForceUseAppDataPathMetaVariable),
+        var liveConfigPath = parser.HasMetaVariable(ForceUseAppDataPathMetaVariable) &&
+                                bool.TryParse(parser.GetMetaVariableValue(ForceUseAppDataPathMetaVariable),
                                   out forceUseAppDataPath)
           ? GetLiveConfigFilePath(currentConfigPath, forceUseAppDataPath)
           : GetLiveConfigFilePath(currentConfigPath);
@@ -238,9 +238,9 @@ namespace ConfigSettings
       lock (lockInstance)
       {
         var config = XDocument.Load(currentConfigPath);
-        var settings = LoadConfigSettings(settingsFileName);
+        var parser = CreateConfigSettingsParser(settingsFileName);
 
-        new ConfigPatch(config, settings).Patch();
+        new ConfigPatch(config, parser).Patch();
         new LogSettingsPatch(config, currentConfigPath).Patch();
 
         return config;
@@ -270,15 +270,14 @@ namespace ConfigSettings
     }
 
     /// <summary>
-    /// Загрузить настройки конфига.
+    /// Создать парсер настроек.
     /// </summary>
     /// <param name="settingsFileName">Путь к файлу настроек конфига.</param>
-    /// <returns>Загруженные настройки конфига.</returns>
-    public static ConfigSettingsParser LoadConfigSettings(string settingsFileName)
+    /// <returns>Парсер.</returns>
+    public static ConfigSettingsParser CreateConfigSettingsParser(string settingsFileName)
     {
       var configSettingsPath = GetActualConfigSettingsPath(settingsFileName);
-      var settings = new ConfigSettingsParser(configSettingsPath);
-      return settings;
+      return new ConfigSettingsParser(configSettingsPath);
     }
 
     /// <summary>

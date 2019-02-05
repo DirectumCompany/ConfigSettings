@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
-using ConfigSettings.Utils;
+using System.Xml;
 using ConfigSettings.Patch;
+using ConfigSettings.Utils;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -109,6 +110,54 @@ namespace ConfigSettings.Tests
   <block name=""TEST_FALSE_BLOCK"" enabled=""False""></block>
   <block name=""TEST_NULL_BLOCK""></block>
 ");
+    }
+
+    [Test]
+    public void WhenGetEmptyXmlBlock()
+    {
+      var configSettingsPath = this.CreateSettings(@"  
+  <block name=""BLOCK1"" enabled=""true""/>
+  <block name=""BLOCK2""></block>
+");
+      var getter = CreateConfigSettingsGetter(configSettingsPath);
+      getter.GetBlock("BLOCK1").Should().Be(null);
+      getter.GetBlock("BLOCK2").Should().Be(null);
+    }
+
+    [Test]
+    public void WhenGetNotExistXmlBlock()
+    {
+      var configSettingsPath = this.CreateSettings("");
+      var getter = CreateConfigSettingsGetter(configSettingsPath);
+      getter.GetBlock("BLOCK1").Should().Be(null);
+    }
+
+    [Test]
+    public void WhenGetXmlBlock()
+    {
+      var configSettingsPath = this.CreateSettings(
+@"<block name=""ORIGIN_TRUE_BLOCK"" enabled=""false"">
+  <repository folderName=""base"" solutionType=""Base"" url="""" />
+  <repository folderName=""work"" solutionType=""Work"" url="""" />
+</block>");
+      var getter = CreateConfigSettingsGetter(configSettingsPath);
+      var content = getter.GetXmlBlock("ORIGIN_TRUE_BLOCK");
+      content.ToString().Should().Be(
+@"<block name=""ORIGIN_TRUE_BLOCK"" enabled=""false"">
+  <repository folderName=""base"" solutionType=""Base"" url="""" />
+  <repository folderName=""work"" solutionType=""Work"" url="""" />
+</block>");
+    }
+
+    [Test]
+    public void WhenGetBadXmlBlock()
+    {
+      var configSettingsPath = this.CreateSettings("<block error!");
+
+      Assert.That(() =>
+      {
+        var getter = CreateConfigSettingsGetter(configSettingsPath);
+      }, Throws.TypeOf<XmlException>());
     }
 
     [Test]

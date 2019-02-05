@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using ConfigSettings.Settings.Patch;
 
 namespace ConfigSettings.Patch
 {
   /// <summary>
-  /// Настройки конфига.
+  /// Парсер файла настроек.
   /// </summary>
   public class ConfigSettingsParser
   {
@@ -36,7 +37,10 @@ namespace ConfigSettings.Patch
 
     private bool isParsed;
 
-    private string rootSettingsFilePath;
+    /// <summary>
+    /// Корневой файл настроек.
+    /// </summary>
+    protected string rootSettingsFilePath;
 
     /// <summary>
     /// Признак, что есть настройка доступности/недоступности блоков.
@@ -91,14 +95,30 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Определить, что для блока есть настроенное содержимое.
+    /// Получить содержимое блока в виде строки.
     /// </summary>
     /// <param name="blockName">Имя блока.</param>
-    /// <returns>True - если есть настройка с соержимым блока.</returns>
+    /// <returns>Содержимым блока.</returns>
     public string GetBlockContent(string blockName)
     {
-      BlockSetting blockSetting;
-      return this.blocks.TryGetValue(blockName, out blockSetting) ? blockSetting.Content : null;
+      return this.blocks.TryGetValue(blockName, out BlockSetting blockSetting) ? blockSetting.Content : null;
+    }
+
+    /// <summary>
+    /// Получить содержимое блока в виде xml.
+    /// </summary>
+    /// <param name="blockName">Имя блока.</param>
+    /// <returns>Содержимым блока.</returns>
+    public XElement GetXmlBlockContent(string blockName)
+    {
+      var content = this.GetBlockContent(blockName);
+      if (string.IsNullOrEmpty(content))
+        return null;
+
+      var namespaceManager = new XmlNamespaceManager(new NameTable());
+      var parserContext = new XmlParserContext(null, namespaceManager, null, XmlSpace.Preserve);
+      using (var xmlReader = new XmlTextReader(content, XmlNodeType.Element, parserContext))
+        return XElement.Load(xmlReader);
     }
 
     /// <summary>
@@ -223,30 +243,29 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Распарсить xml-источник настроек.
+    /// Распарсить корневой xml-источник настроек.
     /// </summary>
-    /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
-    /// <param name="settingsSource">Содержимое фала настроек.</param>
-    private void ParseRootSettingsSource(string settingsFilePath, XDocument settingsSource)
+    protected void ParseRootSettingsSource()
     {
       if (this.isParsed)
         return;
-
       this.isParsed = true;
 
-      if (string.IsNullOrEmpty(settingsFilePath))
+      if (string.IsNullOrEmpty(this.rootSettingsFilePath))
         return;
 
-      this.rootSettingsFilePath = settingsFilePath;
-
       // Добавляем корневой элемент.
-      this.rootImports[settingsFilePath] = new VariableValue(Path.GetFileName(settingsFilePath), this.rootSettingsFilePath);
+      this.rootImports[this.rootSettingsFilePath] = new VariableValue(Path.GetFileName(this.rootSettingsFilePath), this.rootSettingsFilePath);
 
-      this.ParseSettingsSource(settingsFilePath, settingsSource);
+      this.ParseSettingsSource(this.rootSettingsFilePath);
     }
 
-    private void ParseSettingsSource(string settingsFilePath, XDocument settings)
+    protected virtual void ParseSettingsSource(string settingsFilePath)
     {
+      if (!File.Exists(settingsFilePath))
+        return;
+
+      var settings =  XDocument.Load(settingsFilePath);
       if (settings?.Root == null)
         return;
 
@@ -282,10 +301,7 @@ namespace ConfigSettings.Patch
       var absolutePath = Path.IsPathRooted(filePath) ? filePath : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(settingsFilePath), filePath));
 
       this.rootImports[filePath] = new VariableValue(Path.GetFileName(absolutePath), settingsFilePath);
-      if (!File.Exists(absolutePath))
-        return;
-
-      this.ParseSettingsSource(absolutePath, XDocument.Load(absolutePath));
+      this.ParseSettingsSource(absolutePath);
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)
@@ -377,6 +393,18 @@ namespace ConfigSettings.Patch
       }
     }
 
+    /// <summary>
+    /// Удалить все закешированные настройки.
+    /// </summary>
+    protected void ClearAllCaches()
+    {
+      this.variables.Clear();
+      this.metaVariables.Clear();
+      this.blocks.Clear();
+      this.rootImports.Clear();
+      this.isParsed = false;
+    }
+
     #endregion
 
     #region Конструкторы
@@ -387,8 +415,15 @@ namespace ConfigSettings.Patch
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     public ConfigSettingsParser(string settingsFilePath)
     {
-      var settingsSource = File.Exists(settingsFilePath) ? XDocument.Load(settingsFilePath) : null;
-      this.ParseRootSettingsSource(settingsFilePath, settingsSource);
+      this.rootSettingsFilePath = settingsFilePath;
+      this.ParseRootSettingsSource();
+    }
+
+    /// <summary>
+    /// Конструктор для наследников.
+    /// </summary>
+    protected ConfigSettingsParser()
+    {
     }
 
     #endregion
