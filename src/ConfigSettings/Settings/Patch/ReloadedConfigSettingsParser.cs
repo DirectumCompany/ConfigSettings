@@ -22,8 +22,11 @@ namespace ConfigSettings.Patch
 
     protected override void ParseSettingsSource(string settingsFilePath)
     {
-      var watcher = new ConfigSettingsWatcher(settingsFilePath, this.Reload, this.waitBeforeReload);
-      this.watchers.Add(watcher);
+      if (!string.Equals(settingsFilePath, Constants.UnexistedConfigSettingsPath))
+      {
+        var watcher = new ConfigSettingsWatcher(settingsFilePath, this.Reload, this.waitBeforeReload);
+        this.watchers.Add(watcher);
+      }
       base.ParseSettingsSource(settingsFilePath);
     }
 

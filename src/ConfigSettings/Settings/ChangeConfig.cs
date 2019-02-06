@@ -22,11 +22,6 @@ namespace ConfigSettings
     public const string DefaultConfigSettingsFileName = "_ConfigSettings.xml";
 
     /// <summary>
-    /// Спецзначение для несуществующего файла настроек конфига.
-    /// </summary>
-    private const string UnexisitingConfigSettingsPath = "EA6B8EE7-F272-46E2-8780-A757F94C11EB";
-
-    /// <summary>
     /// Имя для перегенерируемого блока настроек.
     /// </summary>
     private const string GeneratedBlockName = "{~GENERATED}";
@@ -106,7 +101,7 @@ namespace ConfigSettings
           currentDirectory = null;
         }
       }
-      return !string.IsNullOrEmpty(configSettingsPath) ? configSettingsPath : UnexisitingConfigSettingsPath;
+      return !string.IsNullOrEmpty(configSettingsPath) ? configSettingsPath : Constants.UnexistedConfigSettingsPath;
     }
 
     /// <summary>

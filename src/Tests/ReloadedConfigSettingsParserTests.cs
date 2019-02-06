@@ -29,6 +29,24 @@ namespace ConfigSettings.Tests
     }
 
     [Test]
+    public void CreateFolderWithConfigFileTest()
+    {
+      int reloaded = 0;
+      var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      reloaded.Should().Be(0);
+      parser.HasVariable("testVariableName").Should().Be(false);
+
+      var directory = Path.GetDirectoryName(fileName);
+      Directory.CreateDirectory(directory);
+      this.WriteConfigFileContent1(fileName);
+
+      System.Threading.Thread.Sleep(300);
+      reloaded.Should().Be(1);
+      parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
+    }
+
+    [Test]
     public void DeleteConfigFileTest()
     {
       int reloaded = 0;
@@ -43,6 +61,50 @@ namespace ConfigSettings.Tests
       System.Threading.Thread.Sleep(300);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
+    }
+
+    [Test]
+    public void DeleteFolderWithConfigFileTest()
+    {
+      int reloaded = 0;
+      var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
+      var directory = Path.GetDirectoryName(fileName);
+      Directory.CreateDirectory(directory);
+      this.WriteConfigFileContent1(fileName);
+
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      reloaded.Should().Be(0);
+      parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
+
+      Directory.Delete(directory, true);
+      System.Threading.Thread.Sleep(300);
+      reloaded.Should().Be(1);
+      parser.HasVariable("testVariableName").Should().Be(false);
+    }
+
+    [Test]
+    public void DeleteFolderWithConfigFileThenCreateTest()
+    {
+      int reloaded = 0;
+      var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
+      var directory = Path.GetDirectoryName(fileName);
+      Directory.CreateDirectory(directory);
+      this.WriteConfigFileContent1(fileName);
+
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      reloaded.Should().Be(0);
+      parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
+
+      Directory.Delete(directory, true);
+      System.Threading.Thread.Sleep(300);
+      reloaded.Should().Be(1);
+      parser.HasVariable("testVariableName").Should().Be(false);
+
+      Directory.CreateDirectory(directory);
+      this.WriteConfigFileContent1(fileName);
+      System.Threading.Thread.Sleep(300);
+      reloaded.Should().Be(2);
+      parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
     [Test]
@@ -179,9 +241,40 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
+    [Test]
+    public void UnexisitingConfigSettingsPathTest()
+    {
+      int reloaded = 0;
+      var parser = new ReloadedConfigSettingsParser(Constants.UnexistedConfigSettingsPath, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      reloaded.Should().Be(0);
+    }
+
+    [Test]
+    public void RelativePathTest()
+    {
+      int reloaded = 0;
+      var fileName = "_config.xml";
+      WriteConfigFileContent1(fileName);
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      reloaded.Should().Be(0);
+      parser.HasVariable("testVariableName2").Should().Be(false);
+      parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
+
+      this.WriteConfigFileContent2(fileName);
+      System.Threading.Thread.Sleep(300);
+      reloaded.Should().Be(1);
+      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
+    }
+
     private string GenerateConfigPath()
     {
-      return Path.Combine(this.tempPath, $@"settings_{Guid.NewGuid()}.xml");
+      return GenerateConfigPath(string.Empty);
+    }
+
+    private string GenerateConfigPath(string subfolder)
+    {
+      return Path.Combine(this.tempPath, subfolder, $@"settings_{Guid.NewGuid()}.xml");
     }
 
     private void WriteConfigFileContent1(string fileName)

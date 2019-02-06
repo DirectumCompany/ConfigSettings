@@ -11,11 +11,17 @@ namespace ConfigSettings.Patch
   {
     #region Поля и свойства
 
+    private string filePath;
+
     private FileSystemWatcher watcher;
 
     private Timer debounceTimer;
 
-    private Action changedHandler;
+    private Timer checkFileExistsTimer;
+
+    private Action fileChangedHandler;
+
+    private TimeSpan waitBeforeNotify;
 
     #endregion
 
@@ -35,23 +41,27 @@ namespace ConfigSettings.Patch
       this.debounceTimer.Start();
     }
 
-    private void TimerElapsedHandler(object sender, ElapsedEventArgs e)
+    private void DebounceHandler(object sender, ElapsedEventArgs e)
     {
-      this.changedHandler();
+      this.fileChangedHandler();
     }
 
-    private FileSystemWatcher CreateWatcher(string filePath)
+    private void CheckFileExistsHandler(object sender, ElapsedEventArgs e)
+    {
+      if (File.Exists(this.filePath))
+        this.fileChangedHandler();
+    }
+
+    private FileSystemWatcher CreateWatcher()
     {
       var watcher = new FileSystemWatcher
       {
-        Path = Path.GetDirectoryName(filePath),
-        Filter = Path.GetFileName(filePath),
+        Path = Path.GetDirectoryName(this.filePath),
+        Filter = Path.GetFileName(this.filePath),
         NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName
       };
       // Cледим за изменением файла.
       watcher.Changed += this.FileChangedHandler;
-      // Следим за созданием файла.
-      watcher.Created += this.FileChangedHandler;
       // Следим за удалением файла.
       watcher.Deleted += this.FileChangedHandler;
       // Следим за переименованием файла.
@@ -61,11 +71,19 @@ namespace ConfigSettings.Patch
       return watcher;
     }
 
-    private Timer CreateTimer(TimeSpan waitBeforeNotify)
+    private Timer CreateDebounceTimer()
     {
-      var timer = new Timer(waitBeforeNotify.TotalMilliseconds);
+      var timer = new Timer(this.waitBeforeNotify.TotalMilliseconds);
       timer.AutoReset = false;
-      timer.Elapsed += this.TimerElapsedHandler;
+      timer.Elapsed += this.DebounceHandler;
+      return timer;
+    }
+
+    private Timer CreateCheckFileExistsTimer()
+    {
+      var timer = new Timer(this.waitBeforeNotify.TotalMilliseconds);
+      timer.AutoReset = true;
+      timer.Elapsed += this.CheckFileExistsHandler;
       return timer;
     }
 
@@ -86,6 +104,13 @@ namespace ConfigSettings.Patch
         this.debounceTimer.Dispose();
         this.debounceTimer = null;
       }
+
+      if (this.checkFileExistsTimer != null)
+      {
+        this.checkFileExistsTimer.Dispose();
+        this.checkFileExistsTimer = null;
+      }
+
     }
 
     #endregion
@@ -96,11 +121,22 @@ namespace ConfigSettings.Patch
     /// <param name="filePath">Путь к файлу, за которым надо наблюдать.</param>
     /// <param name="changedHandler">Обработчик изменения файла.</param>
     /// <param name="waitBeforeNotify">Отсрочка, по истечению которой, будет уведомление об изменении файла.</param>
-    public ConfigSettingsWatcher(string filePath, Action changedHandler, TimeSpan waitBeforeNotify)
+    public ConfigSettingsWatcher(string filePath, Action fileChangedHandler, TimeSpan waitBeforeNotify)
     {
-      this.changedHandler = changedHandler;
-      this.watcher = this.CreateWatcher(filePath);
-      this.debounceTimer = this.CreateTimer(waitBeforeNotify);
+      this.filePath = Path.GetFullPath(filePath);
+      this.fileChangedHandler = fileChangedHandler;
+      this.waitBeforeNotify = waitBeforeNotify;
+
+      if (!File.Exists(filePath))
+      {
+        this.checkFileExistsTimer = this.CreateCheckFileExistsTimer();
+        this.checkFileExistsTimer.Start();
+      }
+      else
+      {
+        this.debounceTimer = this.CreateDebounceTimer();
+        this.watcher = this.CreateWatcher();
+      }
     }
   }
 }
