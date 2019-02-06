@@ -242,7 +242,7 @@ namespace ConfigSettings.Tests
     }
 
     [Test]
-    public void UnexisitingConfigSettingsPathTest()
+    public void UnexistedConfigSettingsPathTest()
     {
       int reloaded = 0;
       var parser = new ReloadedConfigSettingsParser(Constants.UnexistedConfigSettingsPath, () => reloaded++, TimeSpan.FromMilliseconds(200));
