@@ -60,6 +60,11 @@ namespace ConfigSettings
     public string GetBlock(string name)
     {
       return this.configSettingsParser.GetBlockContent(name);
+    }    
+    
+    public T GetBlock<T>(string name) where T: class
+    {
+      return this.configSettingsParser.GetBlockContent<T>(name);
     }
 
     public XElement GetXmlBlock(string name)

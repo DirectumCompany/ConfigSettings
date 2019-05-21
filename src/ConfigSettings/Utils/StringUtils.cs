@@ -20,5 +20,17 @@ namespace ConfigSettings.Utils
 
       return Encoding.UTF8.GetBytes(value).GetMD5Hash();
     }
+
+    public static string ReplaceLastOccurrence(string source, string find, string replace)
+    {
+      var place = source.LastIndexOf(find, StringComparison.Ordinal);
+      return place == -1 ? source : source.Remove(place, find.Length).Insert(place, replace);
+    }
+
+    public static string ReplaceFirstOccurrence(string source, string find, string replace)
+    {
+      var place = source.IndexOf(find, StringComparison.Ordinal);
+      return place  == -1 ? source : $"{source.Substring(0, place)}{replace}{source.Substring(place + find.Length)}";
+    }
   }
 }

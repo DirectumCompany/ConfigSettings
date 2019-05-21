@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Xml.Serialization;
 using ConfigSettings.Utils;
 using ConfigSettings.Patch;
 using FluentAssertions;
@@ -7,6 +9,12 @@ using NUnit.Framework;
 
 namespace ConfigSettings.Tests
 {
+  public class TestTenant
+  {
+    [XmlAttribute]
+    public string Name { get; set; }
+  }
+
   [TestFixture]
   public class ConfigSettingsParserTests
   {
@@ -88,6 +96,42 @@ namespace ConfigSettings.Tests
       var settings = this.CreateSettings($@"<import from=""{unexistedImport}"" />");
       var parser = new ConfigSettingsParser(settings);
       parser.HasImportFrom(unexistedImport).Should().BeTrue();
+    }
+
+    [Test]
+    public void TestGetBlockTyped()
+    {
+      var settings = this.CreateSettings(@"
+  <block name=""testBlockName"">
+    <TestTenant Name=""alpha"" Db=""alpha_db"" />
+    <TestTenant Name=""beta"" User=""alpha_user"" />
+  </block>");
+      var parser = new ConfigSettingsParser(settings);
+      var tenants = parser.GetBlockContent<List<TestTenant>>("testBlockName");
+      tenants.Should().HaveCount(2);
+      tenants[0].Name.Should().Be("alpha");
+      tenants[1].Name.Should().Be("beta");
+    }    
+    
+    [Test]
+    public void TestSetBlockTyped()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+      var tenants = new List<TestTenant>
+      {
+        new TestTenant { Name = "t1"}, 
+        new TestTenant {Name = "t2"}
+      };
+      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.Save();
+
+      this.GetConfigSettings(this.TempConfigFilePath).Should()
+        .Be(@"
+  <block name=""testBlockName"" enabled=""True"">
+    <TestTenant Name=""t1"" />
+    <TestTenant Name=""t2"" />
+  </block>
+");
     }
 
     public string GetConfigSettings(string configPath)

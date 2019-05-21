@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using ConfigSettings.Settings.Patch;
+using System.Reflection;
 
 namespace ConfigSettings.Patch
 {
@@ -101,7 +103,21 @@ namespace ConfigSettings.Patch
     /// <returns>Содержимым блока.</returns>
     public string GetBlockContent(string blockName)
     {
-      return this.blocks.TryGetValue(blockName, out BlockSetting blockSetting) ? blockSetting.Content : null;
+      return this.blocks.TryGetValue(blockName, out var blockSetting) ? blockSetting.Content : null;
+    }
+
+    private string GetBlockContentWithoutRoot(string blockName)
+    {
+      return this.blocks.TryGetValue(blockName, out var blockSetting) ? blockSetting.ContentWithoutRoot : null;
+    }
+
+    public T GetBlockContent<T>(string blockName) where T : class
+    {
+      var content = this.GetBlockContentWithoutRoot(blockName);
+      if (string.IsNullOrEmpty(content))
+        return null;
+
+      return BlockParser.Deserialize<T>(content);
     }
 
     /// <summary>
@@ -183,17 +199,23 @@ namespace ConfigSettings.Patch
       if (isBlockEnabled != null)
         blockContentWithRoot = $@"<block name=""{variableName}"" enabled=""{isBlockEnabled}"" >{blockContent}</block>";
       var newValue = this.HasBlock(variableName)
-        ? new BlockSetting(isBlockEnabled, blockContentWithRoot, this.blocks[variableName].FilePath)
-        : new BlockSetting(isBlockEnabled, blockContentWithRoot, this.rootSettingsFilePath);
+        ? new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.blocks[variableName].FilePath)
+        : new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.rootSettingsFilePath);
       this.blocks[variableName] = newValue;
+    }
+
+    public void SetBlockValue<T>(string variableName, bool? isBlockEnabled, T block) where T: class
+    {
+      var blockContent = BlockParser.Serialize(block);
+      this.SetBlockValue(variableName, isBlockEnabled, blockContent);
     }
 
     public void SetBlockAccessibility(string variableName, bool isBlockEnabled)
     {
       var blockContentWithRoot = $@"<block name=""{variableName}"" enabled=""{isBlockEnabled}"" ></block>";
       var newValue = this.HasBlock(variableName)
-        ? new BlockSetting(true, blockContentWithRoot, this.blocks[variableName].FilePath)
-        : new BlockSetting(true, blockContentWithRoot, this.rootSettingsFilePath);
+        ? new BlockSetting(true, blockContentWithRoot, null,  this.blocks[variableName].FilePath)
+        : new BlockSetting(true, blockContentWithRoot, null, this.rootSettingsFilePath);
       this.blocks[variableName] = newValue;
     }
 
@@ -320,8 +342,10 @@ namespace ConfigSettings.Patch
           isBlockEnabled = false;
       }
 
-      var blockContent = !string.IsNullOrEmpty(string.Concat(element.Nodes())) ? element.ToString() : null;
-      this.blocks[nameAttribute.Value] = new BlockSetting(isBlockEnabled, blockContent, settingsFilePath);
+      var blockContentWithoutRoot = string.Concat(element.Nodes());
+
+      var blockContent = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
+      this.blocks[nameAttribute.Value] = new BlockSetting(isBlockEnabled, blockContent, blockContentWithoutRoot, settingsFilePath);
       if (isBlockEnabled != null)
         this.variables[nameAttribute.Value] = new VariableValue(isBlockEnabled.Value ? "true" : "false", settingsFilePath);
     }
