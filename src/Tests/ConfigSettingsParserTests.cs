@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
-using ConfigSettings.Utils;
 using ConfigSettings.Patch;
+using ConfigSettings.Utils;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -111,15 +112,15 @@ namespace ConfigSettings.Tests
       tenants.Should().HaveCount(2);
       tenants[0].Name.Should().Be("alpha");
       tenants[1].Name.Should().Be("beta");
-    }    
-    
+    }
+
     [Test]
     public void TestSetBlockTyped()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       var tenants = new List<TestTenant>
       {
-        new TestTenant { Name = "t1"}, 
+        new TestTenant { Name = "t1"},
         new TestTenant {Name = "t2"}
       };
       parser.SetBlockValue("testBlockName", true, tenants);
@@ -132,6 +133,39 @@ namespace ConfigSettings.Tests
     <TestTenant Name=""t2"" />
   </block>
 ");
+    }
+
+    [Test]
+    public void TestGetAllImports()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+      parser.SetImportFrom(@"test\file\path");
+      parser.SetImportFrom(@"test\file\path2");
+
+      var imports = parser.GetAllImports();
+
+      imports.Should().HaveCount(2);
+      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
+      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path"));
+      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path2"));
+    }
+
+    [Test]
+    public void TestGetAllImportsRecursively()
+    {
+      var import1 = this.CreateSettings("");
+      var import2 = this.CreateSettings("");
+      var import3 = this.CreateSettings($@"<import from=""{import1}"" /><import from=""{Path.GetFileName(import2)}"" />");
+      var root = this.CreateSettings($@"<import from=""{import3}"" />");
+      var parser = new ConfigSettingsParser(root);
+
+      var imports = parser.GetAllImports();
+
+      imports.Should().HaveCount(3);
+      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
+      imports.Should().Contain(import1);
+      imports.Should().Contain(import2);
+      imports.Should().Contain(import3);
     }
 
     public string GetConfigSettings(string configPath)
