@@ -10,10 +10,10 @@ namespace ConfigSettings
   {
     #region Методы
 
-    private static ReloadedConfigSettingsParser CreateParser(Action reloadHandler, TimeSpan? waitBeforeReload)
+    private static ReloadedConfigSettingsParser CreateParser(Action reloadHandler, Action<Exception> errorHandler, TimeSpan? waitBeforeReload)
     {
       var configSettingsPath = ChangeConfig.GetActualConfigSettingsPath();
-      return new ReloadedConfigSettingsParser(configSettingsPath, reloadHandler, waitBeforeReload);
+      return new ReloadedConfigSettingsParser(configSettingsPath, reloadHandler, errorHandler, waitBeforeReload);
     }
 
     #endregion
@@ -33,7 +33,7 @@ namespace ConfigSettings
     /// Конструктор.
     /// </summary>
     public ReloadedConfigSettingsGetter()
-      : base(CreateParser(null, null))
+      : base(CreateParser(null, null, null))
     {
     }
 
@@ -50,8 +50,9 @@ namespace ConfigSettings
     /// Конструктор.
     /// </summary>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
-    public ReloadedConfigSettingsGetter(Action reloadHandler)
-      : base(CreateParser(reloadHandler, null))
+    /// <param name="errorHandler">Обработчик ошибки.</param>
+    public ReloadedConfigSettingsGetter(Action reloadHandler, Action<Exception> errorHandler)
+      : base(CreateParser(reloadHandler, errorHandler, null))
     {
     }
 
@@ -60,8 +61,9 @@ namespace ConfigSettings
     /// </summary>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
     /// <param name="waitBeforeReload">Отсрочка, по истечению которой, перечитываются настройки из измененнного файла.</param>
-    public ReloadedConfigSettingsGetter(Action reloadHandler, TimeSpan? waitBeforeReload)
-      : base(CreateParser(reloadHandler, waitBeforeReload))
+    /// <param name="errorHandler">Обработчик ошибки.</param>
+    public ReloadedConfigSettingsGetter(Action reloadHandler, Action<Exception> errorHandler, TimeSpan? waitBeforeReload)
+      : base(CreateParser(reloadHandler, errorHandler, waitBeforeReload))
     {
     }
 

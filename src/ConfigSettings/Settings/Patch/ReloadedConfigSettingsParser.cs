@@ -14,6 +14,8 @@ namespace ConfigSettings.Patch
 
     private readonly Action reloadHandler;
 
+    private readonly Action<Exception> errorHandler;
+
     private readonly TimeSpan waitBeforeReload;
 
     #endregion
@@ -47,7 +49,14 @@ namespace ConfigSettings.Patch
     {
       this.ClearWatchers();
       this.ClearAllCaches();
-      this.ParseRootSettingsSource();
+      try
+      {
+        this.ParseRootSettingsSource();
+      }
+      catch (Exception ex)
+      {
+        this.errorHandler?.Invoke(ex);
+      }
       this.reloadHandler?.Invoke();
     }
 
@@ -69,7 +78,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     public ReloadedConfigSettingsParser(string settingsFilePath)
-      : this(settingsFilePath, null)
+      : this(settingsFilePath, null, null)
     {
     }
 
@@ -78,8 +87,9 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
-    public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler)
-      : this(settingsFilePath, reloadHandler, null)
+    /// <param name="errorHandler">Обработчик изменения файла настроек.</param>
+    public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler, Action<Exception> errorHandler)
+      : this(settingsFilePath, reloadHandler, errorHandler, null)
     {
     }
 
@@ -88,10 +98,12 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
+    /// <param name="errorHandler">Обработчик изменения файла настроек.</param>
     /// <param name="waitBeforeReload">Отсрочка, по истечению которой, перечитываются настройки из измененнного файла.</param>
-    public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler, TimeSpan? waitBeforeReload)
+    public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler, Action<Exception> errorHandler, TimeSpan? waitBeforeReload)
     {
       this.reloadHandler = reloadHandler;
+      this.errorHandler = errorHandler;
       this.waitBeforeReload = waitBeforeReload ?? TimeSpan.FromSeconds(5);
       this.rootSettingsFilePath = settingsFilePath;
       this.ParseRootSettingsSource();

@@ -11,19 +11,23 @@ namespace ConfigSettings.Tests
   {
     private readonly string tempPath = TestEnvironment.CreateRandomPath(nameof(ReloadedConfigSettingsParserTests));
 
+    private static readonly TimeSpan reloadedTime = TimeSpan.FromMilliseconds(70);
+    private static readonly TimeSpan waitForReloadedTime = TimeSpan.FromMilliseconds(90);
+    private static readonly TimeSpan waitLessForReloadedTime = TimeSpan.FromMilliseconds(50);
+
     [Test]
     public void CreateConfigFileTest()
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath();
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.HasVariable("testVariableName").Should().Be(false);
 
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
@@ -33,15 +37,15 @@ namespace ConfigSettings.Tests
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.HasVariable("testVariableName").Should().Be(false);
 
       var directory = Path.GetDirectoryName(fileName);
       Directory.CreateDirectory(directory);
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
@@ -51,14 +55,14 @@ namespace ConfigSettings.Tests
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath();
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       File.Delete(fileName);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
     }
@@ -70,14 +74,14 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
       var directory = Path.GetDirectoryName(fileName);
       Directory.CreateDirectory(directory);
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       Directory.Delete(directory, true);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
     }
@@ -89,20 +93,20 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
       var directory = Path.GetDirectoryName(fileName);
       Directory.CreateDirectory(directory);
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       Directory.Delete(directory, true);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
 
       Directory.CreateDirectory(directory);
-      this.WriteConfigFileContent1(fileName);
-      System.Threading.Thread.Sleep(300);
+      WriteConfigFileContent1(fileName);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(2);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
@@ -113,16 +117,16 @@ namespace ConfigSettings.Tests
       int reloaded = 0;
       var fileName1 = this.GenerateConfigPath();
       var fileName2 = this.GenerateConfigPath();
-      this.WriteConfigFileContent1(fileName1);
-      this.WriteConfigFileContent2(fileName2);
+      WriteConfigFileContent1(fileName1);
+      WriteConfigFileContent2(fileName2);
 
-      var parser = new ReloadedConfigSettingsParser(fileName1, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName1, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       File.Delete(fileName1);
       File.Move(fileName2, fileName1);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
@@ -133,16 +137,16 @@ namespace ConfigSettings.Tests
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath();
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      this.WriteConfigFileContent2(fileName);
+      WriteConfigFileContent2(fileName);
       reloaded.Should().Be(0);
 
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
@@ -153,23 +157,23 @@ namespace ConfigSettings.Tests
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath();
-      this.WriteConfigFileContent1(fileName);
+      WriteConfigFileContent1(fileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      this.WriteConfigFileContent2(fileName);
-      System.Threading.Thread.Sleep(150);
+      WriteConfigFileContent2(fileName);
+      System.Threading.Thread.Sleep(waitLessForReloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      this.WriteConfigFileContent3(fileName);
-      System.Threading.Thread.Sleep(150);
+      WriteConfigFileContent3(fileName);
+      System.Threading.Thread.Sleep(waitLessForReloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
 
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
@@ -184,18 +188,18 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath();
       var importFileName = this.GenerateConfigPath();
 
-      this.AddImport(fileName, importFileName);
-      this.WriteConfigFileContent1(importFileName);
+      AddImport(fileName, importFileName);
+      WriteConfigFileContent1(importFileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
       parser.HasVariable("testVariableName2").Should().Be(false);
 
-      this.WriteConfigFileContent2(importFileName);
+      WriteConfigFileContent2(importFileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
@@ -208,16 +212,16 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath();
       var importFileName = this.GenerateConfigPath();
 
-      this.AddImport(fileName, importFileName);
+      AddImport(fileName, importFileName);
 
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.HasVariable("testVariableName").Should().Be(false);
 
-      this.WriteConfigFileContent1(importFileName);
+      WriteConfigFileContent1(importFileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(300);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
@@ -227,15 +231,15 @@ namespace ConfigSettings.Tests
     {
       int reloaded = 0;
       var fileName = this.GenerateConfigPath();
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
 
       reloaded.Should().Be(0);
       parser.HasVariable("testVariableName").Should().Be(false);
 
       var importFileName = this.GenerateConfigPath();
-      this.WriteConfigFileContent1(importFileName);
-      this.AddImport(fileName, importFileName);
-      System.Threading.Thread.Sleep(300);
+      WriteConfigFileContent1(importFileName);
+      AddImport(fileName, importFileName);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
 
       reloaded.Should().Be(1);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
@@ -245,7 +249,7 @@ namespace ConfigSettings.Tests
     public void UnexistedConfigSettingsPathTest()
     {
       int reloaded = 0;
-      var parser = new ReloadedConfigSettingsParser(Constants.UnexistedConfigSettingsPath, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var _ = new ReloadedConfigSettingsParser(Constants.UnexistedConfigSettingsPath, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
     }
 
@@ -255,21 +259,39 @@ namespace ConfigSettings.Tests
       int reloaded = 0;
       var fileName = "_config.xml";
       WriteConfigFileContent1(fileName);
-      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, TimeSpan.FromMilliseconds(200));
+      var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.HasVariable("testVariableName2").Should().Be(false);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      this.WriteConfigFileContent2(fileName);
-      System.Threading.Thread.Sleep(300);
+      WriteConfigFileContent2(fileName);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
       reloaded.Should().Be(1);
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
 
+    [Test]
+    public void IncorrectConfigSettings()
+    {
+      int occuredError = 0;
+      int reloaded = 0;
+      var fileName = this.GenerateConfigPath();
+      WriteCorrectConfigFileContent(fileName);
+      var _ = new ReloadedConfigSettingsParser(fileName, () => reloaded++, (ex) => occuredError++, reloadedTime);
+      occuredError.Should().Be(0);
+      WriteBrokenConfigFileContent(fileName);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
+      occuredError.Should().Be(1);
+      WriteCorrectConfigFileContent(fileName);
+      System.Threading.Thread.Sleep(waitForReloadedTime);
+      reloaded.Should().Be(2);
+      occuredError.Should().Be(1);
+    }
+
     private string GenerateConfigPath()
     {
-      return GenerateConfigPath(string.Empty);
+      return this.GenerateConfigPath(string.Empty);
     }
 
     private string GenerateConfigPath(string subfolder)
@@ -277,31 +299,53 @@ namespace ConfigSettings.Tests
       return Path.Combine(this.tempPath, subfolder, $@"settings_{Guid.NewGuid()}.xml");
     }
 
-    private void WriteConfigFileContent1(string fileName)
+    private static void WriteConfigFileContent1(string fileName)
     {
-      File.WriteAllText(fileName, $@"<?xml version=""1.0"" encoding=""utf-8""?>
+      File.WriteAllText(fileName, @"<?xml version=""1.0"" encoding=""utf-8""?>
 <settings>
 <var name=""testVariableName"" value=""testVariableValue"" />
 </settings>");
     }
 
-    private void WriteConfigFileContent2(string fileName)
+    private static void WriteConfigFileContent2(string fileName)
     {
-      File.WriteAllText(fileName, $@"<?xml version=""1.0"" encoding=""utf-8""?>
+      File.WriteAllText(fileName, @"<?xml version=""1.0"" encoding=""utf-8""?>
 <settings>
 <var name=""testVariableName2"" value=""testVariableValue2"" />
 </settings>");
     }
 
-    private void WriteConfigFileContent3(string fileName)
+    private static void WriteConfigFileContent3(string fileName)
     {
-      File.WriteAllText(fileName, $@"<?xml version=""1.0"" encoding=""utf-8""?>
+      File.WriteAllText(fileName, @"<?xml version=""1.0"" encoding=""utf-8""?>
 <settings>
 <var name=""testVariableName3"" value=""testVariableValue3"" />
 </settings>");
     }
 
-    private void AddImport(string fileName, string importfileName)
+    private static void WriteCorrectConfigFileContent(string fileName)
+    {
+      File.WriteAllText(fileName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+<settings>
+<var name=""SERVICE_RUNNER_PORT"" value=""10001"" />
+  <block name = ""SERVICES"">
+    <ServiceSetting Name=""JobScheduler"" Config=""JobScheduler_ConfigSettings.xml"" Package=""JobScheduler.zip"" />
+  </block>
+</settings>");
+    }
+
+    private static void WriteBrokenConfigFileContent(string fileName)
+    {
+      File.WriteAllText(fileName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+<settings>
+<var name=""SERVICE_RUNNER_PORT"" value=""10001"" />
+  <block name = ""SERVICES"">
+    <ServiceSetting Name=""!№;%()`~_+!@#$%^&()_+-=][';.,,"" Config=""JobScheduler_ConfigSettings.xml"" Package=""JobScheduler.zip"" />
+  </block>
+</settings>");
+    }
+
+    private static void AddImport(string fileName, string importfileName)
     {
       var parser = new ConfigSettingsParser(fileName);
       parser.SetImportFrom(importfileName);
