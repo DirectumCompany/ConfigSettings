@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ConfigSettings.Patch
 {
@@ -22,16 +23,6 @@ namespace ConfigSettings.Patch
 
     #region Методы
 
-    protected override void ParseSettingsSource(string settingsFilePath)
-    {
-      if (!string.Equals(settingsFilePath, Constants.UnexistedConfigSettingsPath))
-      {
-        var watcher = new ConfigSettingsWatcher(settingsFilePath, this.Reload, this.waitBeforeReload);
-        this.watchers.Add(watcher);
-      }
-      base.ParseSettingsSource(settingsFilePath);
-    }
-
     /// <summary>
     /// Удалить всех наблюдателей.
     /// </summary>
@@ -43,12 +34,18 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Перезагрузать файл настроек.
+    /// Перезагрузить файл настроек.
     /// </summary>
     private void Reload()
     {
       this.ClearWatchers();
       this.ClearAllCaches();
+      this.TryParseRootSettingsSource();
+      this.reloadHandler?.Invoke();
+    }
+
+    private void TryParseRootSettingsSource()
+    {
       try
       {
         this.ParseRootSettingsSource();
@@ -57,7 +54,23 @@ namespace ConfigSettings.Patch
       {
         this.errorHandler?.Invoke(ex);
       }
-      this.reloadHandler?.Invoke();
+    }
+
+    #endregion
+
+    #region Базовый класс
+
+    protected override void ParseSettingsSource(string settingsFilePath)
+    {
+      if (string.Equals(settingsFilePath, Constants.UnexistedConfigSettingsPath))
+        return;
+
+      if (!this.watchers.Any(w => w.FilePath.Equals(settingsFilePath, StringComparison.OrdinalIgnoreCase)))
+      {
+        var watcher = new ConfigSettingsWatcher(settingsFilePath, this.Reload, this.waitBeforeReload);
+        this.watchers.Add(watcher);
+      }
+      base.ParseSettingsSource(settingsFilePath);
     }
 
     #endregion
@@ -87,7 +100,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
-    /// <param name="errorHandler">Обработчик изменения файла настроек.</param>
+    /// <param name="errorHandler">Обработчик ошибки парсинга файла настроек.</param>
     public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler, Action<Exception> errorHandler)
       : this(settingsFilePath, reloadHandler, errorHandler, null)
     {
@@ -98,15 +111,15 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     /// <param name="reloadHandler">Обработчик изменения файла настроек.</param>
-    /// <param name="errorHandler">Обработчик изменения файла настроек.</param>
-    /// <param name="waitBeforeReload">Отсрочка, по истечению которой, перечитываются настройки из измененнного файла.</param>
+    /// <param name="errorHandler">Обработчик ошибки парсинга файла настроек.</param>
+    /// <param name="waitBeforeReload">Отсрочка, по истечении которой перечитываются настройки из измененнного файла.</param>
     public ReloadedConfigSettingsParser(string settingsFilePath, Action reloadHandler, Action<Exception> errorHandler, TimeSpan? waitBeforeReload)
     {
       this.reloadHandler = reloadHandler;
       this.errorHandler = errorHandler;
       this.waitBeforeReload = waitBeforeReload ?? TimeSpan.FromSeconds(5);
       this.rootSettingsFilePath = settingsFilePath;
-      this.ParseRootSettingsSource();
+      this.TryParseRootSettingsSource();
     }
 
     #endregion

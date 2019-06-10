@@ -314,29 +314,36 @@ namespace ConfigSettings.Patch
       if (!File.Exists(settingsFilePath))
         return;
 
-      var settings = XDocument.Load(settingsFilePath);
-      if (settings?.Root == null)
-        return;
-
-      // Сначала обрабатываем import-ы, чтобы не зависеть от их местоположения в xml-ке.
-      foreach (var element in settings.Root.Elements())
+      try
       {
-        var elementName = element.Name.LocalName;
-        if (elementName == "import")
-          this.ParseImport(settingsFilePath, element);
+        var settings = XDocument.Load(settingsFilePath);
+        if (settings?.Root == null)
+          return;
+
+        // Сначала обрабатываем import-ы, чтобы не зависеть от их местоположения в xml-ке.
+        foreach (var element in settings.Root.Elements())
+        {
+          var elementName = element.Name.LocalName;
+          if (elementName == "import")
+            this.ParseImport(settingsFilePath, element);
+        }
+
+        // Затем обрабатываем остальные элементы.
+        foreach (var element in settings.Root.Elements())
+        {
+          var elementName = element.Name.LocalName;
+
+          if (elementName == "var")
+            this.ParseVar(settingsFilePath, element);
+          else if (elementName == "meta")
+            this.ParseMeta(settingsFilePath, element);
+          else if (elementName == "block")
+            this.ParseBlock(settingsFilePath, element);
+        }
       }
-
-      // Затем обрабатываем остальные элементы.
-      foreach (var element in settings.Root.Elements())
+      catch (Exception ex) when (!(ex is ParseConfigException))
       {
-        var elementName = element.Name.LocalName;
-
-        if (elementName == "var")
-          this.ParseVar(settingsFilePath, element);
-        else if (elementName == "meta")
-          this.ParseMeta(settingsFilePath, element);
-        else if (elementName == "block")
-          this.ParseBlock(settingsFilePath, element);
+        throw new ParseConfigException(settingsFilePath, $"An error occured when parsing config file: '{settingsFilePath}'.", ex);
       }
     }
 

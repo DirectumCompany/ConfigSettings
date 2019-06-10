@@ -11,7 +11,10 @@ namespace ConfigSettings.Patch
   {
     #region Поля и свойства
 
-    private string filePath;
+    /// <summary>
+    /// Полный путь к наблюдаемому файлу настроек.
+    /// </summary>
+    public string FilePath { get; private set; }
 
     private FileSystemWatcher watcher;
 
@@ -48,7 +51,7 @@ namespace ConfigSettings.Patch
 
     private void CheckFileExistsHandler(object sender, ElapsedEventArgs e)
     {
-      if (File.Exists(this.filePath))
+      if (File.Exists(this.FilePath))
         this.fileChangedHandler();
     }
 
@@ -56,8 +59,8 @@ namespace ConfigSettings.Patch
     {
       var watcher = new FileSystemWatcher
       {
-        Path = Path.GetDirectoryName(this.filePath),
-        Filter = Path.GetFileName(this.filePath),
+        Path = Path.GetDirectoryName(this.FilePath),
+        Filter = Path.GetFileName(this.FilePath),
         NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName
       };
       // Cледим за изменением файла.
@@ -123,7 +126,7 @@ namespace ConfigSettings.Patch
     /// <param name="waitBeforeNotify">Отсрочка, по истечению которой, будет уведомление об изменении файла.</param>
     public ConfigSettingsWatcher(string filePath, Action fileChangedHandler, TimeSpan waitBeforeNotify)
     {
-      this.filePath = Path.GetFullPath(filePath);
+      this.FilePath = Path.GetFullPath(filePath);
       this.fileChangedHandler = fileChangedHandler;
       this.waitBeforeNotify = waitBeforeNotify;
 
