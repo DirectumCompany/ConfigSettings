@@ -154,10 +154,14 @@ namespace ConfigSettings.Tests
     {
       var configSettingsPath = this.CreateSettings("<block error!");
 
-      Assert.That(() =>
+      var thrownException = ((MethodThatThrows)delegate
       {
-        var getter = CreateConfigSettingsGetter(configSettingsPath);
-      }, Throws.TypeOf<XmlException>());
+        CreateConfigSettingsGetter(configSettingsPath);
+      }).GetException();
+
+      thrownException.Should().BeOfType<ParseConfigException>();
+      thrownException.InnerException.Should().BeOfType<XmlException>();
+      ((ParseConfigException)thrownException).CorruptedFilePath.Should().Be(configSettingsPath);
     }
 
     [Test]
