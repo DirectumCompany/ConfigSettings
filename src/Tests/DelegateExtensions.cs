@@ -14,8 +14,6 @@ namespace ConfigSettings.Tests
     /// </summary>
     /// <param name="method">Метод.</param>
     /// <returns>Исключение.</returns>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-      Justification = "В тестах можно")]
     public static Exception GetException(this MethodThatThrows method)
     {
       Exception exception = null;

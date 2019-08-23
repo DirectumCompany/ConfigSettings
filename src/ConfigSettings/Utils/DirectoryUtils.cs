@@ -26,8 +26,6 @@ namespace ConfigSettings.Utils
     /// <param name="path">Имя каталога, который необходимо удалить.</param>
     /// <param name="isFirstAttempt">Признак того, что это первая попытка удаления каталога.</param>
     /// <returns>True, если удаление каталога прошло успешно.</returns>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-      Justification = "Семантика метода не предполагает выброса исключений.")]
     private static bool InternalTryDeleteDirectory(string path, bool isFirstAttempt)
     {
       try
@@ -54,7 +52,6 @@ namespace ConfigSettings.Utils
     /// </summary>
     /// <param name="path">Имя каталога.</param>
     /// <param name="attributes">Атрибут, который необходимо удалить.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Перехват исключений в данном случае необходим.")]
     public static void RemoveDirectoryAttribute(string path, FileAttributes attributes)
     {
       try

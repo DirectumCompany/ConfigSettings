@@ -15,7 +15,6 @@ namespace ConfigSettings.Utils
     /// </summary>
     /// <param name="filePath">Путь к файлу.</param>
     /// <param name="attributes">Атрибут, который необходимо удалить.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Перехват исключений в данном случае необходим.")]
     public static void RemoveFileAttribute(string filePath, FileAttributes attributes)
     {
       try
@@ -69,15 +68,7 @@ namespace ConfigSettings.Utils
       if (GetFileContent(configPath).SafeSequenceEqual(newContent))
         return;
 
-      try
-      {
-        File.WriteAllBytes(configPath, newContent);
-      }
-      catch (UnauthorizedAccessException)
-      {
-        // do nothing.
-        throw;
-      }
+      File.WriteAllBytes(configPath, newContent);
     }
   }
 }
