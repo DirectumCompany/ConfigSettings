@@ -8,6 +8,7 @@
     <SignAssembly>true</SignAssembly>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Configurations>Debug;Release</Configurations>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
