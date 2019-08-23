@@ -12,7 +12,7 @@ namespace ConfigSettings.Tests
     private readonly string tempPath = TestEnvironment.CreateRandomPath(nameof(ReloadedConfigSettingsParserTests));
 
     private static readonly TimeSpan reloadedTime = TimeSpan.FromMilliseconds(70);
-    private static readonly TimeSpan waitForReloadedTime = TimeSpan.FromMilliseconds(90);
+    private static readonly TimeSpan waitForReloadedTime = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan waitLessForReloadedTime = TimeSpan.FromMilliseconds(50);
 
     [Test]
@@ -27,8 +27,7 @@ namespace ConfigSettings.Tests
       WriteConfigFileContent1(fileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
@@ -45,8 +44,7 @@ namespace ConfigSettings.Tests
       Directory.CreateDirectory(directory);
       WriteConfigFileContent1(fileName);
 
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
@@ -62,8 +60,7 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       File.Delete(fileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
     }
 
@@ -81,8 +78,7 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       Directory.Delete(directory, true);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
     }
 
@@ -100,14 +96,12 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       Directory.Delete(directory, true);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
 
       Directory.CreateDirectory(directory);
       WriteConfigFileContent1(fileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(2);
+      Assert.That(() => reloaded, Is.EqualTo(2).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
@@ -126,8 +120,7 @@ namespace ConfigSettings.Tests
 
       File.Delete(fileName1);
       File.Move(fileName2, fileName1);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
@@ -146,8 +139,7 @@ namespace ConfigSettings.Tests
       WriteConfigFileContent2(fileName);
       reloaded.Should().Be(0);
 
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
@@ -173,9 +165,7 @@ namespace ConfigSettings.Tests
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.HasVariable("testVariableName2").Should().Be(false);
       parser.GetVariableValue("testVariableName3").Should().Be("testVariableValue3");
@@ -199,8 +189,7 @@ namespace ConfigSettings.Tests
       WriteConfigFileContent2(importFileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
@@ -221,8 +210,7 @@ namespace ConfigSettings.Tests
       WriteConfigFileContent1(importFileName);
 
       reloaded.Should().Be(0);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
@@ -239,9 +227,8 @@ namespace ConfigSettings.Tests
       var importFileName = this.GenerateConfigPath();
       WriteConfigFileContent1(importFileName);
       AddImport(fileName, importFileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
 
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
     }
 
@@ -265,8 +252,7 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       WriteConfigFileContent2(fileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(1);
+      Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       parser.HasVariable("testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
@@ -281,11 +267,9 @@ namespace ConfigSettings.Tests
       var _ = new ReloadedConfigSettingsParser(fileName, () => reloaded++, (ex) => occuredError++, reloadedTime);
       occuredError.Should().Be(0);
       WriteBrokenConfigFileContent(fileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      occuredError.Should().Be(1);
+      Assert.That(() => occuredError, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       WriteCorrectConfigFileContent(fileName);
-      System.Threading.Thread.Sleep(waitForReloadedTime);
-      reloaded.Should().Be(2);
+      Assert.That(() => reloaded, Is.EqualTo(2).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
       occuredError.Should().Be(1);
     }
 
