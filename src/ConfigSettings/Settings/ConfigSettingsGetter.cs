@@ -42,7 +42,7 @@ namespace ConfigSettings
     /// <param name="name">Имя.</param>
     /// <param name="getDefaultValue">Функция для получения значения по умолчанию.</param>
     /// <returns>Настройка.</returns>
-    public T Get<T>(string name, Func<T> getDefaultValue)
+    public virtual T Get<T>(string name, Func<T> getDefaultValue)
     {
       if (!this.configSettingsParser.HasVariable(name))
         return getDefaultValue();
@@ -52,16 +52,16 @@ namespace ConfigSettings
         return getDefaultValue();
 
       var converter = TypeDescriptor.GetConverter(typeof(T));
-      return converter.CanConvertFrom(typeof(string)) 
-        ? (T)converter.ConvertFrom(value) 
+      return converter.CanConvertFrom(typeof(string))
+        ? (T)converter.ConvertFrom(value)
         : getDefaultValue();
     }
 
     public string GetBlock(string name)
     {
       return this.configSettingsParser.GetBlockContent(name);
-    }    
-    
+    }
+
     public T GetBlock<T>(string name) where T: class
     {
       return this.configSettingsParser.GetBlockContent<T>(name);
