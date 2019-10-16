@@ -9,6 +9,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Configurations>Debug;Release</Configurations>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyOriginatorKeyFile>ConfigSettings.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
