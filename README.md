@@ -63,8 +63,8 @@
 * Runtime изменение `App.config` или `Web.config` .
    
    * **Не работает под .NET Core**. Спасибо [stackoverflow.com](https://stackoverflow.com/questions/6150644/change-default-app-config-at-runtime)!
-
-      Пример использования: 
+   
+   * Пример использования:
   
       У нас есть конфиг приложения `Web.config`. Настройки из этого файла читаются напрямую third-party библиотекой, повлиять на поведение которой мы не можем. В runtime также задать настройки мы не можем. 
   
