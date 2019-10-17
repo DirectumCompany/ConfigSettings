@@ -39,20 +39,20 @@
 
 * Поддержка нескольких типов настроек:
     
-Для простых типов, которые не нуждаются в сложной сериалазции, используется элемент:
+      Для простых типов, которые не нуждаются в сложной сериалазции, используется элемент:
 
-  ```xml
+     ```xml
        <var name="DATABASE_ENGINE" value="mssql" />
-  ``` 
+     ``` 
 
-Для сложных типов или для группировки списка настроек предлагается использовать блоки: 
+      Для сложных типов или для группировки списка настроек предлагается использовать блоки: 
 
-```xml
-     <block name="testBlockName">
-       <tenant name="alpha" db="alpha_db" />
-       <tenant name="beta" user="alpha_user" />
-     </block>
-```
+     ```xml
+       <block name="testBlockName">
+         <tenant name="alpha" db="alpha_db" />
+         <tenant name="beta" user="alpha_user" />
+       </block>
+     ```
 
 * Автоматический поиск пути до файла с настройками. 
 
@@ -64,41 +64,41 @@
    
    * **Не работает под .NET Core**. Спасибо [stackoverflow.com](https://stackoverflow.com/questions/6150644/change-default-app-config-at-runtime)!
 
-  Пример использования: 
+      Пример использования: 
   
-  У нас есть конфиг приложения `Web.config`. Настройки из этого файла читаются напрямую third-party библиотекой, повлиять на поведение которой мы не можем. В runtime также задать настройки мы не можем. 
+      У нас есть конфиг приложения `Web.config`. Настройки из этого файла читаются напрямую third-party библиотекой, повлиять на поведение которой мы не можем. В runtime также задать настройки мы не можем. 
   
-  Очевидным решением кажется необходимость задавать настройки напрямую в `Web.config`, но это может оказаться довольно неудобно. 
+      Очевидным решением кажется необходимость задавать настройки напрямую в `Web.config`, но это может оказаться довольно неудобно. 
   
-  Для упрощения модификации `Web.config` был реализован механизм синхронизации с настройками `_ConfigSettings.xml`.
+      Для упрощения модификации `Web.config` был реализован механизм синхронизации с настройками `_ConfigSettings.xml`.
   
-  Например, можно добавить такой блок настроек с комментарием: 
-  ```xml
-  <hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
-    <session-factory name="Default">
-      <!--{@=CONNECTION_STRING}-->
-      <property name="connection.connection_string"></property>
-    </session-factory>
-  </hibernate-configuration>
-  ```
+      Например, можно добавить такой блок настроек с комментарием: 
+     ```xml
+     <hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
+       <session-factory name="Default">
+         <!--{@=CONNECTION_STRING}-->
+         <property name="connection.connection_string"></property>
+       </session-factory>
+     </hibernate-configuration>
+     ```
   
-  Встроенный шаблонизатор подставит значение, заданное настройкой `CONNECTION_STRING` в файле `_ConfigSettings.xml`. В результате будет создан файл `Web.live.config` из которого third-party библиотека будет читать все настройки:
+      Встроенный шаблонизатор подставит значение, заданное настройкой `CONNECTION_STRING` в файле `_ConfigSettings.xml`. В результате будет создан файл `Web.live.config` из которого third-party библиотека будет читать все настройки:
   
-  ```xml
-  <hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
-      <session-factory name="Default">
-        <!--{@=CONNECTION_STRING}-->
-        <property name="connection.connection_string">Server=localhost;Database=db;User ID=postgres;Password=password;Port=5433;Client Encoding=UTF8</property>
-      </session-factory>
-    </hibernate-configuration>
-  ``` 
+     ```xml
+     <hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
+         <session-factory name="Default">
+           <!--{@=CONNECTION_STRING}-->
+           <property name="connection.connection_string">Server=localhost;Database=db;User ID=postgres;Password=password</property>
+         </session-factory>
+       </hibernate-configuration>
+     ``` 
   
-  С полным перечнем возможностей шаблонизатора можно ознакомиться в тестах.
+      С полным перечнем возможностей шаблонизатора можно ознакомиться в тестах.
   
-  Для активации механизма подмены пути до `Web.config` приложения и шаблонизации настроек, необходимо при инициализации приложения (в методе Main) добавить вызов:
-  ```cs
-  AppConfig.Change();
-  ```
+      Для активации механизма подмены пути до `Web.config` приложения и шаблонизации настроек, необходимо при инициализации приложения (в методе Main) добавить вызов:
+     ```cs
+     AppConfig.Change();
+     ```
 
 ## Версионирование
 
@@ -107,4 +107,5 @@
 
 ## Лицензия
 
-В этом проекте используется лицензия MIT - подробности в файле [LICENSE.md](LICENSE.md)
+В этом проекте используется лицензия MIT.
+Подробности в файле [LICENSE.md](LICENSE.md)
