@@ -3,10 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/rvtpa069lg82fshf/branch/master?svg=true)](https://ci.appveyor.com/project/hemnstill/configsettings/branch/master)
 [![NuGet](https://img.shields.io/nuget/v/configsettings.svg)](https://www.nuget.org/packages/ConfigSettings)
 
-Чтение и запись настроек .NET приложения. 
-
-Когда формат файла App.config кажется слишком избыточным. 
-Позволяет все настройки вынести в отдельный файл. 
+**ConfigSettings** позволяет вынести настройки в отдельный файл и настроить их синхронизацию с Web.config или другими конфигурационными файлами.
 
 ## Быстрый старт 
 * Подключить NuGet пакет:
@@ -33,7 +30,13 @@
 * Чтение настроек из `xml` файла в определённую структуру. 
    * В будущем планируется добавить поддержку `json` формата.
 * Живое отслеживание изменений в настройках.
-* Слияние или импорт нескольких `_ConfigSettings.xml`.
+* Слияние или импорт нескольких `_ConfigSettings.xml`:
+
+
+  ```xml
+       <import from="путь/до/другого/файла.xml">
+  ``` 
+
 * Поддержка нескольких типов настроек:
     
 Для простых типов, которые не нуждаются в сложной сериалазции, используется элемент:
