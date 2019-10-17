@@ -16,6 +16,7 @@
     <Authors>DIRECTUM</Authors>
     <Description>Reading and writing .net application settings.</Description>
     <Copyright>© DIRECTUM Company, 2019</Copyright>
+    <AssemblyOriginatorKeyFile>ConfigSettings.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
