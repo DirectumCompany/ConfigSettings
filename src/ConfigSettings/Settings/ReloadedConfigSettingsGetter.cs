@@ -20,6 +20,7 @@ namespace ConfigSettings
 
     #region IDisposable
 
+    /// <inheritdoc />
     public void Dispose()
     {
       ((ReloadedConfigSettingsParser)this.configSettingsParser).Dispose();

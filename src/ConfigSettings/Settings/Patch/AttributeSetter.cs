@@ -52,6 +52,7 @@ namespace ConfigSettings.Patch
 
     #region Базовый класс
 
+    /// <inheritdoc />
     public override void Apply(XElement element, ConfigSettingsParser configSettingsParser, bool isAncestorSetter)
     {
       if (!this.IsElelementSuitable(element, isAncestorSetter))

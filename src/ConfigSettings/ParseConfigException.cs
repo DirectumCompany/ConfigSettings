@@ -20,6 +20,7 @@ namespace ConfigSettings
 
     #region Базовый класс
 
+    /// <inheritdoc />
     public override void GetObjectData(SerializationInfo info, StreamingContext context)
     {
       base.GetObjectData(info, context);

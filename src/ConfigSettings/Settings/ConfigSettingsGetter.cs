@@ -10,6 +10,9 @@ namespace ConfigSettings
   /// </summary>
   public class ConfigSettingsGetter
   {
+    /// <summary>
+    /// Парсер настроек.
+    /// </summary>
     protected readonly ConfigSettingsParser configSettingsParser;
 
     /// <summary>
@@ -57,46 +60,88 @@ namespace ConfigSettings
         : getDefaultValue();
     }
 
+    /// <summary>
+    /// Получить блок в виде строки.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <returns>Строка.</returns>
     public string GetBlock(string name)
     {
       return this.configSettingsParser.GetBlockContent(name);
     }
 
+    /// <summary>
+    /// Получить блок.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <typeparam name="T">Тип блока.</typeparam>
+    /// <returns>Типизированный блок.</returns>
     public T GetBlock<T>(string name) where T: class
     {
       return this.configSettingsParser.GetBlockContent<T>(name);
     }
 
+    /// <summary>
+    /// Получить блок в виде XML.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <returns>XML блока.</returns>
     public XElement GetXmlBlock(string name)
     {
       return this.configSettingsParser.GetXmlBlockContent(name);
     }
 
+    /// <summary>
+    /// Установить значение.
+    /// </summary>
+    /// <param name="name">Имя переменной.</param>
+    /// <param name="value">Значение переменной.</param>
+    /// <typeparam name="T">Тип переменной.</typeparam>
     public void Set<T>(string name, T value)
     {
       this.configSettingsParser.SetVariableValue(name, value.ToString());
     }
 
+    /// <summary>
+    /// Установить значение блока.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <param name="enabled">Доступность блока.</param>
+    /// <param name="value">Значение блока.</param>
     public void SetBlock(string name, bool? enabled, string value)
     {
       this.configSettingsParser.SetBlockValue(name, enabled, value);
     }
 
+    /// <summary>
+    /// Задать импорт.
+    /// </summary>
+    /// <param name="filePath">Путь к файлу.</param>
     public void SetImport(string filePath)
     {
       this.configSettingsParser.SetImportFrom(filePath);
     }
 
+    /// <summary>
+    /// Сохранить.
+    /// </summary>
     public void Save()
     {
       this.configSettingsParser.Save();
     }
 
+    /// <summary>
+    /// Конструктор
+    /// </summary>
+    /// <param name="configSettingsParser">Парсер настроек.</param>
     public ConfigSettingsGetter(ConfigSettingsParser configSettingsParser)
     {
       this.configSettingsParser = configSettingsParser ?? new ConfigSettingsParser(null);
     }
 
+    /// <summary>
+    /// Конструтор.
+    /// </summary>
     public ConfigSettingsGetter() : this(ConfigSettingsResolver.CreateDefaultConfigSettingsParser())
     {
     }

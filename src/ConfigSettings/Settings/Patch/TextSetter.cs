@@ -8,6 +8,12 @@ namespace ConfigSettings.Patch
   /// </summary>
   public class TextSetter : BaseSetter
   {
+    /// <summary>
+    /// Применить настройки к элементу.
+    /// </summary>
+    /// <param name="element">XML элемент.</param>
+    /// <param name="configSettingsParser">Парсер настроек.</param>
+    /// <param name="isAncestorSetter">Установлено в предке.</param>
     public override void Apply(XElement element, ConfigSettingsParser configSettingsParser, bool isAncestorSetter)
     {
       if (isAncestorSetter)
@@ -31,6 +37,10 @@ namespace ConfigSettings.Patch
       }
     }
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="setterExpression">Выражение для установки.</param>
     public TextSetter(string setterExpression) : base(setterExpression) { }
   }
 }

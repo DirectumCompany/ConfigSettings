@@ -94,6 +94,7 @@ namespace ConfigSettings.Patch
 
     #region IDisposable
 
+    /// <inheritdoc />
     public void Dispose()
     {
       if (this.watcher != null)
@@ -122,7 +123,7 @@ namespace ConfigSettings.Patch
     /// Конструктор.
     /// </summary>
     /// <param name="filePath">Путь к файлу, за которым надо наблюдать.</param>
-    /// <param name="changedHandler">Обработчик изменения файла.</param>
+    /// <param name="fileChangedHandler">бработчик изменения файла.</param>
     /// <param name="waitBeforeNotify">Отсрочка, по истечению которой, будет уведомление об изменении файла.</param>
     public ConfigSettingsWatcher(string filePath, Action fileChangedHandler, TimeSpan waitBeforeNotify)
     {

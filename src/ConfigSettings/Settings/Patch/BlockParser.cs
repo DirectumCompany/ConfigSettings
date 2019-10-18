@@ -9,6 +9,9 @@ using ConfigSettings.Utils;
 
 namespace ConfigSettings.Patch
 {
+  /// <summary>
+  /// Парсер блоков.
+  /// </summary>
   public static class BlockParser
   {
     private static bool ImplementsGenericInterface(Type type, Type interfaceType)

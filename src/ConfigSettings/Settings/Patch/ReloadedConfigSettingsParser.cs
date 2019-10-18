@@ -60,6 +60,7 @@ namespace ConfigSettings.Patch
 
     #region Базовый класс
 
+    /// <inheritdoc />
     protected override void ParseSettingsSource(string settingsFilePath)
     {
       if (string.Equals(settingsFilePath, Constants.UnexistedConfigSettingsPath))
@@ -77,6 +78,7 @@ namespace ConfigSettings.Patch
 
     #region IDisposable
 
+    /// <inheritdoc />
     public void Dispose()
     {
       this.ClearWatchers();

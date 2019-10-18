@@ -138,6 +138,12 @@ namespace ConfigSettings.Patch
       return this.blocks.TryGetValue(blockName, out var blockSetting) ? blockSetting.ContentWithoutRoot : null;
     }
 
+    /// <summary>
+    /// Получить содержимое блока (без корневого элемента).
+    /// </summary>
+    /// <param name="blockName">Имя блока.</param>
+    /// <typeparam name="T">Тип блока.</typeparam>
+    /// <returns>Типизированный блок.</returns>
     public T GetBlockContent<T>(string blockName) where T : class
     {
       var content = this.GetBlockContentWithoutRoot(blockName);
@@ -174,6 +180,11 @@ namespace ConfigSettings.Patch
       return this.variables.ContainsKey(variableName);
     }
 
+    /// <summary>
+    /// Есть корневая переменная. TODO: Что это?
+    /// </summary>
+    /// <param name="variableName">Имя перемнной.</param>
+    /// <returns>True, если ест.</returns>
     public bool HasRootVariable(string variableName)
     {
       return this.variables.Any(v => v.Value.FilePath.Equals(this.rootSettingsFilePath, StringComparison.OrdinalIgnoreCase) &&
@@ -202,6 +213,10 @@ namespace ConfigSettings.Patch
       this.variables[variableName] = newValue;
     }
 
+    /// <summary>
+    /// Удалить переменную, если она есть.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
     public void RemoveVariable(string variableName)
     {
       if (this.HasRootVariable(variableName))
@@ -220,6 +235,12 @@ namespace ConfigSettings.Patch
       this.metaVariables[variableName] = newValue;
     }
 
+    /// <summary>
+    /// Установить значение блока.
+    /// </summary>
+    /// <param name="variableName">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="blockContent">Содержимое блока в виде строки.</param>
     public void SetBlockValue(string variableName, bool? isBlockEnabled, string blockContent)
     {
       var blockContentWithRoot = $@"<block name=""{variableName}"">{blockContent}</block>";
@@ -231,12 +252,24 @@ namespace ConfigSettings.Patch
       this.blocks[variableName] = newValue;
     }
 
+    /// <summary>
+    /// Установить значение блока.
+    /// </summary>
+    /// <param name="variableName">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="block">Типизированный блок.</param>
+    /// <typeparam name="T">Тип блока.</typeparam>
     public void SetBlockValue<T>(string variableName, bool? isBlockEnabled, T block) where T : class
     {
       var blockContent = BlockParser.Serialize(block);
       this.SetBlockValue(variableName, isBlockEnabled, blockContent);
     }
 
+    /// <summary>
+    /// Установить признак доступности.
+    /// </summary>
+    /// <param name="variableName">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
     public void SetBlockAccessibility(string variableName, bool isBlockEnabled)
     {
       var blockContentWithRoot = $@"<block name=""{variableName}"" enabled=""{isBlockEnabled}"" ></block>";
@@ -247,6 +280,10 @@ namespace ConfigSettings.Patch
     }
 
 
+    /// <summary>
+    /// Усатновить import from.
+    /// </summary>
+    /// <param name="filePath">Путь к файлу.</param>
     public void SetImportFrom(string filePath)
     {
       var newValue = this.HasImportFrom(filePath)
@@ -265,6 +302,11 @@ namespace ConfigSettings.Patch
       return this.metaVariables.ContainsKey(variableName);
     }
 
+    /// <summary>
+    /// Проверить наличие блока.
+    /// </summary>
+    /// <param name="variableName">Имя блока.</param>
+    /// <returns>True, если блок существует.</returns>
     public bool HasBlock(string variableName)
     {
       return this.blocks.ContainsKey(variableName);
@@ -280,11 +322,21 @@ namespace ConfigSettings.Patch
       return this.metaVariables[variableName].Value;
     }
 
+    /// <summary>
+    /// Проверить наличие переменной import from.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    /// <returns>True, если есть импорт с таким именем файла.</returns>
     public bool HasImportFrom(string fileName)
     {
       return this.rootImports.Values.Any(v => v.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// Получить значение импорта.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    /// <returns>Переменная с импортом.</returns>
     public VariableValue GetImportFrom(string fileName)
     {
       return this.rootImports.First(k => this.rootImports[k.Key].Value.Equals(Path.GetFileName(fileName),
@@ -309,6 +361,11 @@ namespace ConfigSettings.Patch
       this.ParseSettingsSource(this.rootSettingsFilePath);
     }
 
+    /// <summary>
+    /// Распарсить источник настроек.
+    /// </summary>
+    /// <param name="settingsFilePath">путь к файлу.</param>
+    /// <exception cref="ParseConfigException"></exception>
     protected virtual void ParseSettingsSource(string settingsFilePath)
     {
       if (!File.Exists(settingsFilePath))
@@ -406,6 +463,10 @@ namespace ConfigSettings.Patch
       }
     }
 
+    /// <summary>
+    /// Сохранить.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
     public void Save()
     {
       if (!this.rootImports.Keys.Any())

@@ -21,12 +21,26 @@ namespace ConfigSettings.Utils
       return Encoding.UTF8.GetBytes(value).GetMD5Hash();
     }
 
+    /// <summary>
+    /// Заменить последнее вхождение.
+    /// </summary>
+    /// <param name="source">Исходная строка.</param>
+    /// <param name="find">Что заменить.</param>
+    /// <param name="replace">На что заменить.</param>
+    /// <returns>Строка с заменой.</returns>
     public static string ReplaceLastOccurrence(string source, string find, string replace)
     {
       var place = source.LastIndexOf(find, StringComparison.Ordinal);
       return place == -1 ? source : source.Remove(place, find.Length).Insert(place, replace);
     }
 
+    /// <summary>
+    /// Заменить первое вхождение.
+    /// </summary>
+    /// <param name="source">Исходная строка.</param>
+    /// <param name="find">Что заменить.</param>
+    /// <param name="replace">На что заменить.</param>
+    /// <returns>Строка с заменой.</returns>
     public static string ReplaceFirstOccurrence(string source, string find, string replace)
     {
       var place = source.IndexOf(find, StringComparison.Ordinal);
