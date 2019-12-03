@@ -333,6 +333,22 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
+    /// Удалить импорт файла.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    public void RemoveImportFrom(string fileName)
+    {
+      if (this.HasImportFrom(fileName))
+      {
+        var imports = this.rootImports.Where(v => v.Value.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase)).ToList();
+        foreach (var import in imports)
+        {
+          this.rootImports.Remove(import);
+        }
+      }
+    }
+
+    /// <summary>
     /// Получить значение импорта.
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
