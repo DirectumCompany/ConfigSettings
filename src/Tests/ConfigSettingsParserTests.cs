@@ -168,6 +168,23 @@ namespace ConfigSettings.Tests
       imports.Should().Contain(import3);
     }
 
+    [Test]
+    public void TestRemoveImportFrom()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+      parser.SetImportFrom(@"test\file\path");
+      parser.SetImportFrom(@"test\file\path2");
+
+      var imports = parser.GetAllImports();
+      imports.Should().HaveCount(2);
+      parser.RemoveImportFrom(@"test\file\path");
+      parser.RemoveImportFrom(@"test\file\path3");
+      parser.GetAllImports().Should().HaveCount(1);
+      
+      parser.RemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
+      parser.GetAllImports().Should().HaveCount(0);
+    }
+
     public string GetConfigSettings(string configPath)
     {
       var content = File.ReadAllText(configPath);

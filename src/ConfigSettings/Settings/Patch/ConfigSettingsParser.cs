@@ -329,7 +329,23 @@ namespace ConfigSettings.Patch
     /// <returns>True, если есть импорт с таким именем файла.</returns>
     public bool HasImportFrom(string fileName)
     {
-      return this.rootImports.Values.Any(v => v.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
+      return this.GetImportsFrom(fileName).Any();
+    }
+
+    /// <summary>
+    /// Удалить импорт файла.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    public void RemoveImportFrom(string fileName)
+    {
+      if (this.HasImportFrom(fileName))
+      {
+        var imports = this.GetImportsFrom(fileName).ToList();
+        foreach (var import in imports)
+        {
+          this.rootImports.Remove(import);
+        }
+      }
     }
 
     /// <summary>
@@ -339,8 +355,17 @@ namespace ConfigSettings.Patch
     /// <returns>Переменная с импортом.</returns>
     public VariableValue GetImportFrom(string fileName)
     {
-      return this.rootImports.First(k => this.rootImports[k.Key].Value.Equals(Path.GetFileName(fileName),
-        StringComparison.OrdinalIgnoreCase)).Value;
+      return this.GetImportsFrom(fileName).First().Value;
+    }
+
+    /// <summary>
+    /// Получить все импорты файла.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    /// <returns>Импорты файла.</returns>
+    private IEnumerable<KeyValuePair<string, VariableValue>> GetImportsFrom(string fileName)
+    {
+      return this.rootImports.Where(v => v.Value.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
