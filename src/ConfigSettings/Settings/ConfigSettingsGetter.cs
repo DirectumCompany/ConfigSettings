@@ -82,7 +82,7 @@ namespace ConfigSettings
     }
 
     /// <summary>
-    /// Получить блок.
+    /// Установить блок.
     /// </summary>
     /// <param name="name">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
