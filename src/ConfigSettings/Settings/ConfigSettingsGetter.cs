@@ -82,6 +82,19 @@ namespace ConfigSettings
     }
 
     /// <summary>
+    /// Получить блок.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="block">Типизированный блок.</param>
+    /// <typeparam name="T">Тип блока.</typeparam>
+    /// <returns>Типизированный блок.</returns>
+    public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
+    {
+      this.configSettingsParser.SetBlockValue(name, isBlockEnabled, block);
+    }
+
+    /// <summary>
     /// Получить блок в виде XML.
     /// </summary>
     /// <param name="name">Имя блока.</param>

@@ -22,18 +22,36 @@ namespace ConfigSettings.Patch
         .Any(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == interfaceType);
     }
 
+    private static string GetUnderlyingTypeNameOfGenericEnumerable<T>()
+    {
+      return GetUnderlyingTypeNameOfGenericEnumerable(typeof(T));
+    }
+
     /// <summary>
     /// Получить имя тип типа, лежащее в основе generic enumerable типа.
     /// </summary>
     /// <typeparam name="T">Тип.</typeparam>
     /// <returns>Имя основного типа. Null, если исходный тип не generic enumerable.</returns>
-    private static string GetUnderlyingTypeNameOfGenericEnumerable<T>()
+    private static string GetUnderlyingTypeNameOfGenericEnumerable(Type type)
     {
-      var type = typeof(T);
+      var underlyingType = GetUnderlyingTypeOfGenericEnumerable(type);
+      if (underlyingType == null)
+        return null;
+
+      var childType = GetUnderlyingTypeOfGenericEnumerable(underlyingType);
+      if (childType == null)
+        return underlyingType.Name;
+
+      return $"ArrayOf{GetUnderlyingTypeNameOfGenericEnumerable(underlyingType)}";
+    }
+
+    
+    private static Type GetUnderlyingTypeOfGenericEnumerable(Type type)
+    {
       if (!ImplementsGenericInterface(type, typeof(IEnumerable<>)))
         return null;
 
-      return type.GenericTypeArguments.FirstOrDefault()?.Name;
+      return type.GenericTypeArguments.FirstOrDefault();
     }
 
     /// <summary>

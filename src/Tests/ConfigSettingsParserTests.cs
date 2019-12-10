@@ -16,6 +16,12 @@ namespace ConfigSettings.Tests
     public string Name { get; set; }
   }
 
+  public class TenantGroup
+  {
+    [XmlAttribute]
+    public List<TestTenant> Tenants { get; set; }
+  }
+
   [TestFixture]
   public class ConfigSettingsParserTests
   {
@@ -131,6 +137,43 @@ namespace ConfigSettings.Tests
   <block name=""testBlockName"" enabled=""True"">
     <TestTenant Name=""t1"" />
     <TestTenant Name=""t2"" />
+  </block>
+");
+    }
+
+
+    [Test]
+    public void TestSetBlockTypedArray()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+
+      var tenantGroups = new List<List<TestTenant>>()
+      {
+        new List<TestTenant>
+        {
+          new TestTenant { Name = "a1" },
+          new TestTenant { Name = "a2" }
+        },
+        new List<TestTenant>
+        {
+          new TestTenant { Name = "b1" },
+          new TestTenant { Name = "b2" }
+        },
+      };
+
+      parser.SetBlockValue("tenantGroups", true, tenantGroups);
+      parser.Save();
+
+      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""tenantGroups"" enabled=""True"">
+    <ArrayOfTestTenant>
+      <TestTenant Name=""a1"" />
+      <TestTenant Name=""a2"" />
+    </ArrayOfTestTenant>
+    <ArrayOfTestTenant>
+      <TestTenant Name=""b1"" />
+      <TestTenant Name=""b2"" />
+    </ArrayOfTestTenant>
   </block>
 ");
     }
