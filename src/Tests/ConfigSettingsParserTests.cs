@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Serialization;
 using ConfigSettings.Patch;
 using ConfigSettings.Utils;
@@ -16,11 +17,25 @@ namespace ConfigSettings.Tests
     public string Name { get; set; }
   }
 
-  public class TenantGroup
+  public class TestPlugin
   {
-    [XmlAttribute]
-    public List<TestTenant> Tenants { get; set; }
+    [XmlIgnore]
+    public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+
+    [XmlAnyAttribute]
+    public XmlAttribute[] XmlAttributes
+    {
+      get
+      {
+        if (this.Attributes == null)
+          return null;
+        var doc = new XmlDocument();
+        return this.Attributes.Select(p => { var a = doc.CreateAttribute(p.Key); a.Value = p.Value; return a; }).ToArray();
+      }
+      set { this.Attributes = value?.ToDictionary(a => a.Name, a => a.Value); }
+    }
   }
+
 
   [TestFixture]
   public class ConfigSettingsParserTests
@@ -176,6 +191,58 @@ namespace ConfigSettings.Tests
     </ArrayOfTestTenant>
   </block>
 ");
+    } 
+  
+    [Test]
+    public void TestSetBlockTypedArrayAsAttributes()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+
+      var da1 = new TestPlugin();
+      da1.Attributes.Add("id", "id_value");
+      var db1 = new TestPlugin();
+      db1.Attributes.Add("name", "name_value");
+
+      parser.SetBlockValue("TestPluginSettings", true, new List<TestPlugin>
+      {
+        da1,
+        db1
+      });
+      parser.Save();
+
+      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""TestPluginSettings"" enabled=""True"">
+    <TestPlugin id=""id_value"" />
+    <TestPlugin name=""name_value"" />
+  </block>
+");
+    } 
+    
+    [Test]
+    public void TestGetBlockTypedArray()
+    {
+      var settings = this.CreateSettings(@"
+ <block name=""tenantGroups"" enabled=""True"">
+    <ArrayOfTestTenant>
+      <TestTenant Name=""a1"" />
+      <TestTenant Name=""a2"" />
+    </ArrayOfTestTenant>
+    <ArrayOfTestTenant>
+      <TestTenant Name=""b1"" />
+      <TestTenant Name=""b2"" />
+    </ArrayOfTestTenant>
+  </block>");
+
+      var parser = new ConfigSettingsParser(settings);
+      var tenantgroups = parser.GetBlockContent<List<List<TestTenant>>>("tenantGroups");
+      tenantgroups.Should().HaveCount(2);
+      var tenantsA = tenantgroups[0];
+      tenantsA[0].Name.Should().Be("a1");
+      tenantsA[1].Name.Should().Be("a2"); 
+      
+      var tenantsB = tenantgroups[1];
+      tenantsB[0].Name.Should().Be("b1");
+      tenantsB[1].Name.Should().Be("b2");
     }
 
     [Test]
