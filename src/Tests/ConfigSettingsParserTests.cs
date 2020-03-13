@@ -36,6 +36,11 @@ namespace ConfigSettings.Tests
     }
   }
 
+  public class TestNestedTenants
+  {
+    public List<TestTenant> Tenants { get; set; }
+  }
+
 
   [TestFixture]
   public class ConfigSettingsParserTests
@@ -121,7 +126,7 @@ namespace ConfigSettings.Tests
     }
 
     [Test]
-    public void TestGetBlockTyped()
+    public void TestGetBlockTypedArray()
     {
       var settings = this.CreateSettings(@"
   <block name=""testBlockName"">
@@ -136,7 +141,7 @@ namespace ConfigSettings.Tests
     }
 
     [Test]
-    public void TestSetBlockTyped()
+    public void TestSetBlockTypedArray()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       var tenants = new List<TestTenant>
@@ -158,7 +163,7 @@ namespace ConfigSettings.Tests
 
 
     [Test]
-    public void TestSetBlockTypedArray()
+    public void TestSetBlockTypedArrayOfArray()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
 
@@ -192,6 +197,34 @@ namespace ConfigSettings.Tests
   </block>
 ");
     } 
+    
+    [Test]
+    public void TestSetBlockTypedNestedList()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+
+      var tenantList = new List<TestTenant>
+      {
+        new TestTenant { Name = "a1" },
+        new TestTenant { Name = "a2" }
+      };
+
+      var nestedTenantList = new List<TestNestedTenants> { new TestNestedTenants { Tenants = tenantList } };
+
+      parser.SetBlockValue("nestedTenantGroups", true, nestedTenantList);
+      parser.Save();
+
+      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""nestedTenantGroups"" enabled=""True"">
+    <TestNestedTenants>
+      <Tenants>
+        <TestTenant Name=""a1"" />
+        <TestTenant Name=""a2"" />
+      </Tenants>
+    </TestNestedTenants>
+  </block>
+");
+    } 
   
     [Test]
     public void TestSetBlockTypedArrayAsAttributes()
@@ -219,7 +252,7 @@ namespace ConfigSettings.Tests
     } 
     
     [Test]
-    public void TestGetBlockTypedArray()
+    public void TestGetBlockTypedArrayOfArray()
     {
       var settings = this.CreateSettings(@"
  <block name=""tenantGroups"" enabled=""True"">
