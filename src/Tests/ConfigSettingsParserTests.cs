@@ -21,7 +21,7 @@ namespace ConfigSettings.Tests
   [XmlRoot("test_custom_root")]
   public class TestTenantWithCustomRootElementName
   {
-    [XmlAttribute]
+    [XmlAttribute("custom_name")]
     public string Name { get; set; }
   }
 
@@ -184,8 +184,8 @@ namespace ConfigSettings.Tests
       this.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <block name=""testBlockName"" enabled=""True"">
-    <test_custom_root Name=""t1"" />
-    <test_custom_root Name=""t2"" />
+    <test_custom_root custom_name=""t1"" />
+    <test_custom_root custom_name=""t2"" />
   </block>
 ");
     }   
@@ -195,8 +195,8 @@ namespace ConfigSettings.Tests
     {
       var settings = this.CreateSettings(@"
   <block name=""testBlockName"">
-    <test_custom_root Name=""t1"" />
-    <test_custom_root Name=""t2"" />
+    <test_custom_root custom_name=""t1"" />
+    <test_custom_root custom_name=""t2"" />
   </block>");
       var parser = new ConfigSettingsParser(settings);
       var tenants = parser.GetBlockContent<List<TestTenantWithCustomRootElementName>>("testBlockName");
