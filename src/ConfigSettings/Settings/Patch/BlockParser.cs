@@ -10,7 +10,7 @@ using ConfigSettings.Utils;
 namespace ConfigSettings.Patch
 {
   /// <summary>
-  /// Парсер блоков.
+  /// РџР°СЂСЃРµСЂ Р±Р»РѕРєРѕРІ.
   /// </summary>
   public static class BlockParser
   {
@@ -23,20 +23,20 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Получить имя тип типа, лежащее в основе generic enumerable типа.
+    /// РџРѕР»СѓС‡РёС‚СЊ РёРјСЏ С‚РёРї С‚РёРїР°, Р»РµР¶Р°С‰РµРµ РІ РѕСЃРЅРѕРІРµ generic enumerable С‚РёРїР°.
     /// </summary>
-    /// <typeparam name="T">Тип.</typeparam>
-    /// <returns>Имя основного типа. Null, если исходный тип не generic enumerable.</returns>
+    /// <typeparam name="T">РўРёРї.</typeparam>
+    /// <returns>РРјСЏ РѕСЃРЅРѕРІРЅРѕРіРѕ С‚РёРїР°. Null, РµСЃР»Рё РёСЃС…РѕРґРЅС‹Р№ С‚РёРї РЅРµ generic enumerable.</returns>
     private static string GetUnderlyingTypeNameOfGenericEnumerable<T>()
     {
       return GetUnderlyingTypeNameOfGenericEnumerable(typeof(T));
     }
 
     /// <summary>
-    /// Капитализировать первую букву.
+    /// РљР°РїРёС‚Р°Р»РёР·РёСЂРѕРІР°С‚СЊ РїРµСЂРІСѓСЋ Р±СѓРєРІСѓ.
     /// </summary>
-    /// <param name="input">Строка.</param>
-    /// <returns>Строка с заглавной первой буквой.</returns>
+    /// <param name="input">РЎС‚СЂРѕРєР°.</param>
+    /// <returns>РЎС‚СЂРѕРєР° СЃ Р·Р°РіР»Р°РІРЅРѕР№ РїРµСЂРІРѕР№ Р±СѓРєРІРѕР№.</returns>
     public static string FirstCharToUpper(this string input)
     {
       if (string.IsNullOrEmpty(input))
@@ -46,20 +46,20 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Получить ElementName из аттрибута XmlRoot, если он задан.
+    /// РџРѕР»СѓС‡РёС‚СЊ ElementName РёР· Р°С‚С‚СЂРёР±СѓС‚Р° XmlRoot, РµСЃР»Рё РѕРЅ Р·Р°РґР°РЅ.
     /// </summary>
-    /// <param name="type">Типа.</param>
-    /// <returns>Строка с именем типа из xml аттрибута.</returns>
+    /// <param name="type">РўРёРїР°.</param>
+    /// <returns>РЎС‚СЂРѕРєР° СЃ РёРјРµРЅРµРј С‚РёРїР° РёР· xml Р°С‚С‚СЂРёР±СѓС‚Р°.</returns>
     public static string GetElementNameFromXmlRoot(Type type)
     {
       return FirstCharToUpper(type.GetCustomAttribute<XmlRootAttribute>()?.ElementName);
     }
 
     /// <summary>
-    /// Получить имя тип типа, лежащее в основе generic enumerable типа.
+    /// РџРѕР»СѓС‡РёС‚СЊ РёРјСЏ С‚РёРї С‚РёРїР°, Р»РµР¶Р°С‰РµРµ РІ РѕСЃРЅРѕРІРµ generic enumerable С‚РёРїР°.
     /// </summary>
-    /// <param name="type">Тип.</param>
-    /// <returns>Имя основного типа. Null, если исходный тип не generic enumerable.</returns>
+    /// <param name="type">РўРёРї.</param>
+    /// <returns>РРјСЏ РѕСЃРЅРѕРІРЅРѕРіРѕ С‚РёРїР°. Null, РµСЃР»Рё РёСЃС…РѕРґРЅС‹Р№ С‚РёРї РЅРµ generic enumerable.</returns>
     private static string GetUnderlyingTypeNameOfGenericEnumerable(Type type)
     {
       var underlyingType = GetUnderlyingTypeOfGenericEnumerable(type);
@@ -67,7 +67,7 @@ namespace ConfigSettings.Patch
         return null;
 
       var childType = GetUnderlyingTypeOfGenericEnumerable(underlyingType);
-      // Достигли дна.
+      // Р”РѕСЃС‚РёРіР»Рё РґРЅР°.
       if (childType == null)
       {
         var typeNameFromXmlRoot = GetElementNameFromXmlRoot(underlyingType);
@@ -81,10 +81,10 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Получить тип типа, лежащего в основе generic enumerable типа.
+    /// РџРѕР»СѓС‡РёС‚СЊ С‚РёРї С‚РёРїР°, Р»РµР¶Р°С‰РµРіРѕ РІ РѕСЃРЅРѕРІРµ generic enumerable С‚РёРїР°.
     /// </summary>
-    /// <param name="type">Тип.</param>
-    /// <returns>Тип. Null, если исходный тип не generic enumerable.</returns>
+    /// <param name="type">РўРёРї.</param>
+    /// <returns>РўРёРї. Null, РµСЃР»Рё РёСЃС…РѕРґРЅС‹Р№ С‚РёРї РЅРµ generic enumerable.</returns>
     private static Type GetUnderlyingTypeOfGenericEnumerable(Type type)
     {
       if (!ImplementsGenericInterface(type, typeof(IEnumerable<>)))
@@ -94,10 +94,10 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Преобразовать строку в поток.
+    /// РџСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ СЃС‚СЂРѕРєСѓ РІ РїРѕС‚РѕРє.
     /// </summary>
-    /// <param name="content">Строка.</param>
-    /// <returns>Поток.</returns>
+    /// <param name="content">РЎС‚СЂРѕРєР°.</param>
+    /// <returns>РџРѕС‚РѕРє.</returns>
     private static Stream ToStream(string content)
     {
       var stream = new MemoryStream();
@@ -109,11 +109,11 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Десериализовать блок
+    /// Р”РµСЃРµСЂРёР°Р»РёР·РѕРІР°С‚СЊ Р±Р»РѕРє
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="content">Содержимое блока с заголовком. (Без ArrayOfT в случае массива).</param>
-    /// <returns>Экземпляр типа.</returns>
+    /// <param name="content">РЎРѕРґРµСЂР¶РёРјРѕРµ Р±Р»РѕРєР° СЃ Р·Р°РіРѕР»РѕРІРєРѕРј. (Р‘РµР· ArrayOfT РІ СЃР»СѓС‡Р°Рµ РјР°СЃСЃРёРІР°).</param>
+    /// <returns>Р­РєР·РµРјРїР»СЏСЂ С‚РёРїР°.</returns>
     public static T Deserialize<T>(string content) where T : class
     {
       if (string.IsNullOrEmpty(content))
@@ -133,11 +133,11 @@ namespace ConfigSettings.Patch
     }
     
     /// <summary>
-    /// Сериализовать тип в xml строку в формате блока. Для типов-списков заголовки вырезаются.
+    /// РЎРµСЂРёР°Р»РёР·РѕРІР°С‚СЊ С‚РёРї РІ xml СЃС‚СЂРѕРєСѓ РІ С„РѕСЂРјР°С‚Рµ Р±Р»РѕРєР°. Р”Р»СЏ С‚РёРїРѕРІ-СЃРїРёСЃРєРѕРІ Р·Р°РіРѕР»РѕРІРєРё РІС‹СЂРµР·Р°СЋС‚СЃСЏ.
     /// </summary>
-    /// <typeparam name="T">Тип.</typeparam>
-    /// <param name="value">Экземпляр.</param>
-    /// <returns>Строка.</returns>
+    /// <typeparam name="T">РўРёРї.</typeparam>
+    /// <param name="value">Р­РєР·РµРјРїР»СЏСЂ.</param>
+    /// <returns>РЎС‚СЂРѕРєР°.</returns>
     public static string Serialize<T>(T value) where T : class
     {
       if (value == null)
