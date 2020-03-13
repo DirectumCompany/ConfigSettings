@@ -15,6 +15,14 @@ namespace ConfigSettings.Tests
   {
     [XmlAttribute]
     public string Name { get; set; }
+  }  
+  
+  [XmlType("test_custom_root")]
+  [XmlRoot("test_custom_root")]
+  public class TestTenantWithCustomRootElementName
+  {
+    [XmlAttribute]
+    public string Name { get; set; }
   }
 
   public class TestPlugin
@@ -159,8 +167,43 @@ namespace ConfigSettings.Tests
     <TestTenant Name=""t2"" />
   </block>
 ");
-    }
+    }  
+    
+    [Test]
+    public void TestSetBlockTypedArrayWithCustomElementName()
+    {
+      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+      var tenants = new List<TestTenantWithCustomRootElementName>
+      {
+        new TestTenantWithCustomRootElementName { Name = "t1"},
+        new TestTenantWithCustomRootElementName {Name = "t2"}
+      };
+      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.Save();
 
+      this.GetConfigSettings(this.TempConfigFilePath).Should()
+        .Be(@"
+  <block name=""testBlockName"" enabled=""True"">
+    <test_custom_root Name=""t1"" />
+    <test_custom_root Name=""t2"" />
+  </block>
+");
+    }   
+    
+    [Test]
+    public void TestGetBlockTypedArrayWithCustomElementName()
+    {
+      var settings = this.CreateSettings(@"
+  <block name=""testBlockName"">
+    <test_custom_root Name=""t1"" />
+    <test_custom_root Name=""t2"" />
+  </block>");
+      var parser = new ConfigSettingsParser(settings);
+      var tenants = parser.GetBlockContent<List<TestTenantWithCustomRootElementName>>("testBlockName");
+      tenants.Should().HaveCount(2);
+      tenants[0].Name.Should().Be("t1");
+      tenants[1].Name.Should().Be("t2");
+    }
 
     [Test]
     public void TestSetBlockTypedArrayOfArray()
@@ -224,7 +267,7 @@ namespace ConfigSettings.Tests
     </TestNestedTenants>
   </block>
 ");
-    } 
+    }
   
     [Test]
     public void TestSetBlockTypedArrayAsAttributes()

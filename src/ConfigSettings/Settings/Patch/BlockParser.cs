@@ -33,6 +33,29 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
+    /// Капитализировать первую букву.
+    /// </summary>
+    /// <param name="input">Строка.</param>
+    /// <returns>Строка с заглавной первой буквой.</returns>
+    public static string FirstCharToUpper(this string input)
+    {
+      if (string.IsNullOrEmpty(input))
+        return input;
+
+      return input.First().ToString().ToUpper() + input.Substring(1);
+    }
+
+    /// <summary>
+    /// Получить ElementName из аттрибута XmlRoot, если он задан.
+    /// </summary>
+    /// <param name="type">Типа.</param>
+    /// <returns>Строка с именем типа из xml аттрибута.</returns>
+    public static string GetElementNameFromXmlRoot(Type type)
+    {
+      return FirstCharToUpper(type.GetCustomAttribute<XmlRootAttribute>()?.ElementName);
+    }
+
+    /// <summary>
     /// Получить имя тип типа, лежащее в основе generic enumerable типа.
     /// </summary>
     /// <param name="type">Тип.</param>
@@ -44,8 +67,15 @@ namespace ConfigSettings.Patch
         return null;
 
       var childType = GetUnderlyingTypeOfGenericEnumerable(underlyingType);
+      // Достигли дна.
       if (childType == null)
+      {
+        var typeNameFromXmlRoot = GetElementNameFromXmlRoot(underlyingType);
+        if (!string.IsNullOrEmpty(typeNameFromXmlRoot))
+          return typeNameFromXmlRoot;
+
         return underlyingType.Name;
+      }
 
       return $"ArrayOf{GetUnderlyingTypeNameOfGenericEnumerable(underlyingType)}";
     }
