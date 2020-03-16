@@ -69,7 +69,7 @@ namespace ConfigSettings.Patch
         if (filePath != this.rootSettingsFilePath)
         {
           var sourceConfigFile = pair.Value.FilePath;
-          result.Add(this.GetAbsoluteImportPath(filePath, sourceConfigFile));
+          result.Add(GetAbsoluteImportPath(filePath, sourceConfigFile));
         }
       }
       return result;
@@ -81,7 +81,7 @@ namespace ConfigSettings.Patch
     /// <param name="importFilePath">Импортируемый файл, указанный в атрибуте from.</param>
     /// <param name="sourceConfigFilePath">Исходный конфигурационный файл, который содержит импорт.</param>
     /// <returns>Абсолютный путь до импортируемого файла настроек.</returns>
-    private string GetAbsoluteImportPath(string importFilePath, string sourceConfigFilePath)
+    private static string GetAbsoluteImportPath(string importFilePath, string sourceConfigFilePath)
     {
       return Path.IsPathRooted(importFilePath) ? importFilePath : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceConfigFilePath), importFilePath));
     }
