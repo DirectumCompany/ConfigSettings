@@ -94,21 +94,6 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Преобразовать строку в поток.
-    /// </summary>
-    /// <param name="content">Строка.</param>
-    /// <returns>Поток.</returns>
-    private static Stream ToStream(string content)
-    {
-      var stream = new MemoryStream();
-      var writer = new StreamWriter(stream);
-      writer.Write(content);
-      writer.Flush();
-      stream.Position = 0;
-      return stream;
-    }
-
-    /// <summary>
     /// Десериализовать блок
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -128,7 +113,7 @@ namespace ConfigSettings.Patch
       var ns = new XmlSerializerNamespaces();
       ns.Add(string.Empty, string.Empty);
 
-      using (var reader = XmlReader.Create(ToStream(content)))
+      using (var reader = XmlReader.Create(new StringReader(content)))
         return new XmlSerializer(typeof(T)).Deserialize(reader) as T;
     }
     
