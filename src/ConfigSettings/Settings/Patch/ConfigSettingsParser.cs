@@ -52,6 +52,8 @@ namespace ConfigSettings.Patch
     /// </summary>
     public bool HasContentBlocks { get { return this.blocks.Any(b => !string.IsNullOrEmpty(b.Value.Content)); } }
 
+    private readonly List<CommentValue> comments = new List<CommentValue>();
+
     #endregion
 
     #region Методы
@@ -210,6 +212,10 @@ namespace ConfigSettings.Patch
     {
       var newValue = this.HasVariable(variableName) ?
         new VariableValue(variableValue, this.variables[variableName].FilePath) : new VariableValue(variableValue, this.rootSettingsFilePath);
+
+      if (this.variables.ContainsKey(variableName))
+        newValue.Comment = this.variables[variableName].Comment;
+
       this.variables[variableName] = newValue;
     }
 
@@ -232,6 +238,9 @@ namespace ConfigSettings.Patch
     {
       var newValue = this.HasMetaVariable(variableName) ?
         new VariableValue(variableValue, this.metaVariables[variableName].FilePath) : new VariableValue(variableValue, this.rootSettingsFilePath);
+
+      if (this.metaVariables.ContainsKey(variableName))
+        newValue.Comment = this.metaVariables[variableName].Comment;
       this.metaVariables[variableName] = newValue;
     }
 
@@ -249,6 +258,8 @@ namespace ConfigSettings.Patch
       var newValue = this.HasBlock(variableName)
         ? new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.blocks[variableName].FilePath)
         : new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.rootSettingsFilePath);
+      if (this.blocks.ContainsKey(variableName))
+        newValue.Comment = this.blocks[variableName].Comment;
       this.blocks[variableName] = newValue;
     }
 
@@ -276,6 +287,8 @@ namespace ConfigSettings.Patch
       var newValue = this.HasBlock(variableName)
         ? new BlockSetting(true, blockContentWithRoot, null, this.blocks[variableName].FilePath)
         : new BlockSetting(true, blockContentWithRoot, null, this.rootSettingsFilePath);
+      if (this.blocks.ContainsKey(variableName))
+        newValue.Comment = this.blocks[variableName].Comment;
       this.blocks[variableName] = newValue;
     }
 
@@ -422,11 +435,50 @@ namespace ConfigSettings.Patch
           else if (elementName == "block")
             this.ParseBlock(settingsFilePath, element);
         }
+        foreach (var node in settings.Root.Nodes())
+        {
+          if (node is XComment)
+            this.ParseComment(settingsFilePath, node as XComment);
+        }
+
       }
       catch (Exception ex) when (!(ex is ParseConfigException))
       {
         throw new ParseConfigException(settingsFilePath, $"An error occured when parsing config file: '{settingsFilePath}'.", ex);
       }
+    }
+
+    /// <summary>
+    /// Получить комментарии.
+    /// </summary>
+    /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
+    /// <param name="element">Элемент комменария.</param>
+    private void ParseComment(string settingsFilePath, XComment element)
+    {
+      var next = element.NextNode as XElement;
+      if (next != null)
+      {
+        var nextName = next.Name.LocalName;
+        if (nextName == "import" || nextName == "meta" || nextName == "var" || nextName == "block")
+          return;
+      }
+      this.comments.Add(new CommentValue(element.Value, settingsFilePath));
+    }
+
+    /// <summary>
+    /// Получить комментарий для ноды.
+    /// </summary>
+    /// <param name="element">Элемент, для которого нужно получить комменарий.</param>
+    /// <returns>Строка с комменарием.</returns>
+    private string GetComment(XNode element)
+    {
+      if (element.PreviousNode != null)
+      {
+        var comment = element.PreviousNode as XComment;
+        if (comment != null)
+          return comment.Value;
+      }
+      return null;
     }
 
     private void ParseImport(string settingsFilePath, XElement element)
@@ -445,7 +497,7 @@ namespace ConfigSettings.Patch
     private void ParseBlock(string settingsFilePath, XElement element)
     {
       var nameAttribute = element.Attribute("name");
-      if (string.IsNullOrEmpty(nameAttribute?.Value))
+      if (string.IsNullOrEmpty(nameAttribute?.Value) && !this.variables.ContainsKey(nameAttribute.Value))
         return;
 
       var enabledAttribute = element.Attribute("enabled");
@@ -463,7 +515,11 @@ namespace ConfigSettings.Patch
       var blockContent = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
       this.blocks[nameAttribute.Value] = new BlockSetting(isBlockEnabled, blockContent, blockContentWithoutRoot, settingsFilePath);
       if (isBlockEnabled != null)
+      {
         this.variables[nameAttribute.Value] = new VariableValue(isBlockEnabled.Value ? "true" : "false", settingsFilePath);
+        this.variables[nameAttribute.Value].Comment = this.GetComment(element);
+      }
+      this.blocks[nameAttribute.Value].Comment = this.GetComment(element);
     }
 
     private void ParseMeta(string settingsFilePath, XElement element)
@@ -475,6 +531,7 @@ namespace ConfigSettings.Patch
         if (!string.IsNullOrEmpty(nameAttribute.Value))
           this.metaVariables[nameAttribute.Value] = new VariableValue(valueAttribute.Value, settingsFilePath);
       }
+      this.metaVariables[nameAttribute.Value].Comment = this.GetComment(element);
     }
 
     private void ParseVar(string settingsFilePath, XElement element)
@@ -483,8 +540,11 @@ namespace ConfigSettings.Patch
       var valueAttribute = element.Attribute("value");
       if (nameAttribute != null && valueAttribute != null)
       {
-        if (!string.IsNullOrEmpty(nameAttribute.Value))
+        if (!string.IsNullOrEmpty(nameAttribute.Value) && !this.variables.ContainsKey(nameAttribute.Value))
+        {
           this.variables[nameAttribute.Value] = new VariableValue(valueAttribute.Value, settingsFilePath);
+          this.variables[nameAttribute.Value].Comment = this.GetComment(element);
+        }
       }
     }
 
@@ -504,15 +564,22 @@ namespace ConfigSettings.Patch
         var rootImportsWithEqualPath = this.rootImports.Where(v => v.Value.FilePath.Equals(filePath) &&
                                                                    !v.Key.Equals(filePath, StringComparison.OrdinalIgnoreCase));
         foreach (var kvp in rootImportsWithEqualPath)
+        {
           rootElement.Add(new XElement("import", new XAttribute("from", kvp.Key)));
+        }
 
         var metaVariablesWithEqualPath = this.metaVariables.Where(v => v.Value.FilePath.Equals(filePath));
         foreach (var kvp in metaVariablesWithEqualPath)
+        {
+          if (!string.IsNullOrEmpty(kvp.Value.Comment))
+            rootElement.Add(new XComment(kvp.Value.Comment));
           rootElement.Add(new XElement("meta", new XAttribute("name", kvp.Key), new XAttribute("value", kvp.Value.Value)));
-
+        }
         var variablesWithEqualPath = this.variables.Where(v => v.Value.FilePath.Equals(filePath) && !this.HasBlock(v.Key));
         foreach (var kvp in variablesWithEqualPath)
         {
+          if (!string.IsNullOrEmpty(kvp.Value.Comment))
+            rootElement.Add(new XComment(kvp.Value.Comment));
           rootElement.Add(
             new XElement("var", new XAttribute("name", kvp.Key), new XAttribute("value", kvp.Value.Value)));
         }
@@ -525,7 +592,17 @@ namespace ConfigSettings.Patch
               : $@"<block name=""{kvp.Key}""></block>"
             : kvp.Value.Content;
           var blockContent = XDocument.Parse(blockContentWithRoot);
+
+          if (!string.IsNullOrEmpty(kvp.Value.Comment))
+            rootElement.Add(new XComment(kvp.Value.Comment));
           rootElement.Add(blockContent.Root);
+        }
+
+        var commentsWithEqualPath = this.comments.Where(v => v.FilePath.Equals(filePath));
+        foreach (var comment in commentsWithEqualPath)
+        {
+          if (!string.IsNullOrEmpty(comment.Value))
+            rootElement.Add(new XComment(comment.Value));
         }
 
         if (!rootElement.HasElements)

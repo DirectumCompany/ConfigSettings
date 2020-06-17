@@ -19,6 +19,11 @@
     /// Содержимое блока без корневого заголовка.
     /// </summary>
     public string ContentWithoutRoot { get; }
+ 
+    /// <summary>
+    /// Комментарий.
+    /// </summary>
+    public string Comment { get; set; }
 
     public string FilePath { get; }
 
