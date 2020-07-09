@@ -144,6 +144,16 @@ namespace ConfigSettings
     }
 
     /// <summary>
+    /// Проверить, содержится ли настройка в конфигурации.
+    /// </summary>
+    /// <param name="settingName">Имя настройки.</param>
+    /// <returns>Истина, если настройка с указанным именем есть в конфигурации.</returns>
+    public bool ContainsSetting(string settingName)
+    {
+      return this.configSettingsParser.HasVariable(settingName);
+    }
+
+    /// <summary>
     /// Конструктор
     /// </summary>
     /// <param name="configSettingsParser">Парсер настроек.</param>
