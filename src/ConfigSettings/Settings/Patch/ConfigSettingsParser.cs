@@ -491,6 +491,7 @@ namespace ConfigSettings.Patch
       var absolutePath = GetAbsoluteImportPath(filePath, settingsFilePath);
 
       this.rootImports[filePath] = new VariableValue(Path.GetFileName(absolutePath), settingsFilePath);
+      this.rootImports[filePath].Comment = this.GetComment(element);
       this.ParseSettingsSource(absolutePath);
     }
 
@@ -565,6 +566,8 @@ namespace ConfigSettings.Patch
                                                                    !v.Key.Equals(filePath, StringComparison.OrdinalIgnoreCase));
         foreach (var kvp in rootImportsWithEqualPath)
         {
+          if (!string.IsNullOrEmpty(kvp.Value.Comment))
+            rootElement.Add(new XComment(kvp.Value.Comment));
           rootElement.Add(new XElement("import", new XAttribute("from", kvp.Key)));
         }
 

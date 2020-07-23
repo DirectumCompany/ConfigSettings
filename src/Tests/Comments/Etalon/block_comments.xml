@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<settings>
+  <!--TENANTS comment-->
+  <block name="TENANTS">
+    <!--alpha comment-->
+    <tenant name="alpha" db="alpha_db" />
+    <!--beta comment-->
+    <tenant name="beta" user="alpha_user" />
+  </block>
+</settings>

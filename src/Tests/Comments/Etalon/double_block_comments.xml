@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<settings>
+  <!--comment-->
+  <!--TENANTS comment 2-->
+  <block name="TENANTS">
+    <!--alpha comment 1-->
+    <!--alpha comment 2-->
+    <tenant name="alpha" db="alpha_db" />
+    <!--beta comment 1-->
+    <!--alpha comment 2-->
+    <tenant name="beta" user="alpha_user" />
+  </block>
+</settings>
