@@ -34,24 +34,6 @@
     <ProjectReference Include="..\ConfigSettings\ConfigSettings.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Comments\Etalon\double_import_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Comments\Etalon\import_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Comments\Etalon\double_block_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Comments\Etalon\block_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Comments\Etalon\double_variable_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Comments\Etalon\variable_comments.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="ChangeConfig\Etalon\settings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

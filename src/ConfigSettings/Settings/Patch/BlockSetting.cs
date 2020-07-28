@@ -1,4 +1,6 @@
-﻿namespace ConfigSettings.Patch
+﻿using System.Collections.Generic;
+
+namespace ConfigSettings.Patch
 {
   /// <summary>
   /// Настройки блока.
@@ -21,9 +23,9 @@
     public string ContentWithoutRoot { get; }
  
     /// <summary>
-    /// Комментарий.
+    /// Комментарии.
     /// </summary>
-    public string Comment { get; set; }
+    public List<string> Comments { get; set; }
 
     public string FilePath { get; }
 
