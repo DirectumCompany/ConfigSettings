@@ -465,22 +465,6 @@ namespace ConfigSettings.Patch
       this.comments.Add(new CommentValue(element.Value, settingsFilePath));
     }
 
-    ///// <summary>
-    ///// Получить комментарий для ноды.
-    ///// </summary>
-    ///// <param name="element">Элемент, для которого нужно получить комменарий.</param>
-    ///// <returns>Строка с комменарием.</returns>
-    //private string GetComment(XNode element)
-    //{
-    //  if (element.PreviousNode != null)
-    //  {
-    //    var comment = element.PreviousNode as XComment;
-    //    if (comment != null)
-    //      return comment.Value;
-    //  }
-    //  return null;
-    //}
-
     /// <summary>
     /// Получить комментарии для ноды.
     /// </summary>
