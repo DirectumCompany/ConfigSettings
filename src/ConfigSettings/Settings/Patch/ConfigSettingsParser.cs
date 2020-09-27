@@ -15,7 +15,7 @@ namespace ConfigSettings.Patch
   /// Позволяет записывать настройки в любой файл, не проверяет вхождение этого файла в считанный набор файлов.
   /// !!! ПРИ СОХРАНЕНИИ ПЕРЕЗАПИСЫВАЕТ ВСЕ СЧИТАННЫЕ РАНЕЕ ФАЙЛЫ.
   /// </summary>
-  public class ConfigSettingsParser
+  public class ConfigSettingsParser : IConfigSettingsParser
   {
     #region Поля и свойства
 
