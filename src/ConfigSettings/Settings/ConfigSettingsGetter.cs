@@ -112,7 +112,7 @@ namespace ConfigSettings
     /// <typeparam name="T">Тип переменной.</typeparam>
     public void Set<T>(string name, T value)
     {
-      this.configSettingsParser.AddOrUpdateVariable(this.configSettingsParser.roo, name, value.ToString());
+      this.configSettingsParser.AddOrUpdateVariable(this.configSettingsParser.RootSettingsFilePath, name, value.ToString());
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ namespace ConfigSettings
     /// <param name="value">Значение блока.</param>
     public void SetBlock(string name, bool? enabled, string value)
     {
-      this.configSettingsParser.AddOrUpdateBlock(name, enabled, value);
+      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, enabled, value);
     }
 
     /// <summary>

@@ -273,6 +273,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Установить значение блока.
     /// </summary>
+    /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
     /// <param name="blockContent">Содержимое блока в виде строки.</param>
@@ -337,7 +338,8 @@ namespace ConfigSettings.Patch
       var importFrom = this.TryGetImportFrom(filePath);
       if (importFrom == null)
       {
-        importFrom = new Variable(settingsFilePath, filePath, Path.GetFileName(filePath), comments);
+        var absolutePath = GetAbsoluteImportPath(filePath, settingsFilePath);
+        importFrom = new Variable(settingsFilePath, filePath, absolutePath, comments);
         this.rootImports.Add(importFrom);
         return;
       }
@@ -529,16 +531,11 @@ namespace ConfigSettings.Patch
 
     private void ParseImport(string settingsFilePath, XElement element)
     {
-      var fromAttribute = element.Attribute("from");
-      if (string.IsNullOrEmpty(fromAttribute?.Value))
+      var from = element.Attribute("from")?.Value;
+      if (string.IsNullOrEmpty(from))
         return;
 
-      var filePath = fromAttribute.Value;
-      var absolutePath = GetAbsoluteImportPath(filePath, settingsFilePath);
-
-      this.rootImports[filePath] = new Variable(Path.GetFileName(absolutePath), settingsFilePath);
-      this.rootImports[filePath].Comments = this.GetComments(element);
-      this.ParseSettingsSource(absolutePath);
+      this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)
@@ -595,7 +592,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="comments">Комментарии.</param>
     /// <param name="rootElement">Корневой элемент.</param>
-    private void SaveComments(List<string> comments, XElement rootElement) 
+    private void SaveComments(IReadOnlyList<string> comments, XElement rootElement) 
     {
       if (comments != null)
       {
@@ -611,45 +608,46 @@ namespace ConfigSettings.Patch
     /// <exception cref="InvalidOperationException"></exception>
     public void Save()
     {
-      if (!this.rootImports.Keys.Any())
+      if (!this.rootImports.Any())
         throw new InvalidOperationException("Cannot save. rootImports is empty.");
 
-      foreach (var filePath in this.rootImports.Keys)
+      foreach (var rootImport in this.rootImports)
       {
+        var filePath = rootImport.Name;
         var rootElement = new XElement("settings");
 
-        var rootImportsWithEqualPath = this.rootImports.Where(v => v.Value.FilePath.Equals(filePath) &&
-                                                                   !v.Key.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+        var rootImportsWithEqualPath = this.rootImports.Where(v => v.FilePath.Equals(filePath) &&
+                                                                   !v.Name.Equals(filePath, StringComparison.OrdinalIgnoreCase));
         foreach (var kvp in rootImportsWithEqualPath)
         {
-          this.SaveComments(kvp.Value.Comments, rootElement);
-          rootElement.Add(new XElement("import", new XAttribute("from", kvp.Key)));
+          this.SaveComments(kvp.Comments, rootElement);
+          rootElement.Add(new XElement("import", new XAttribute("from", kvp.Name)));
         }
 
-        var metaVariablesWithEqualPath = this.metaVariables.Where(v => v.Value.FilePath.Equals(filePath));
+        var metaVariablesWithEqualPath = this.metaVariables.Where(v => v.FilePath.Equals(filePath));
         foreach (var kvp in metaVariablesWithEqualPath)
         {
-          this.SaveComments(kvp.Value.Comments, rootElement);
-          rootElement.Add(new XElement("meta", new XAttribute("name", kvp.Key), new XAttribute("value", kvp.Value.Value)));
+          this.SaveComments(kvp.Comments, rootElement);
+          rootElement.Add(new XElement("meta", new XAttribute("name", kvp.Name), new XAttribute("value", kvp.Value)));
         }
-        var variablesWithEqualPath = this.variables.Where(v => v.Value.FilePath.Equals(filePath) && !this.HasBlock(v.Key));
+        var variablesWithEqualPath = this.variables.Where(v => v.FilePath.Equals(filePath) && !this.HasBlock(v.Name));
         foreach (var kvp in variablesWithEqualPath)
         {
-          this.SaveComments(kvp.Value.Comments, rootElement);
+          this.SaveComments(kvp.Comments, rootElement);
           rootElement.Add(
-            new XElement("var", new XAttribute("name", kvp.Key), new XAttribute("value", kvp.Value.Value)));
+            new XElement("var", new XAttribute("name", kvp.Name), new XAttribute("value", kvp.Value)));
         }
 
-        var blocksWithEqualPath = this.blocks.Where(v => v.Value.FilePath.Equals(filePath));
+        var blocksWithEqualPath = this.blocks.Where(v => v.FilePath.Equals(filePath));
         foreach (var kvp in blocksWithEqualPath)
         {
-          var blockContentWithRoot = string.IsNullOrEmpty(kvp.Value.Content)
-            ? kvp.Value.IsEnabled != null ? $@"<block name=""{kvp.Key}"" enabled=""{kvp.Value.IsEnabled}""></block>"
-              : $@"<block name=""{kvp.Key}""></block>"
-            : kvp.Value.Content;
+          var blockContentWithRoot = string.IsNullOrEmpty(kvp.Content)
+            ? kvp.IsEnabled != null ? $@"<block name=""{kvp.Name}"" enabled=""{kvp.IsEnabled}""></block>"
+              : $@"<block name=""{kvp.Name}""></block>"
+            : kvp.Content;
           var blockContent = XDocument.Parse(blockContentWithRoot);
 
-          this.SaveComments(kvp.Value.Comments, rootElement);
+          this.SaveComments(kvp.Comments, rootElement);
           rootElement.Add(blockContent.Root);
         }
 
