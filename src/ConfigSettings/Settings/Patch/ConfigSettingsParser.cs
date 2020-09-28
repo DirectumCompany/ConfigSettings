@@ -221,7 +221,7 @@ namespace ConfigSettings.Patch
       var newValue = this.TryGetVariable(variableName);
       if (newValue == null)
       {
-        newValue = new Variable(settingsFilePath, variableName, variableValue);
+        newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
         this.variables.Add(newValue);
         return;
       }
@@ -252,7 +252,7 @@ namespace ConfigSettings.Patch
       var newValue = this.TryGetVariable(variableName);
       if (newValue == null)
       {
-        newValue = new Variable(settingsFilePath, variableName, variableValue);
+        newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
         this.metaVariables.Add(newValue);
         return;
       }
@@ -338,13 +338,13 @@ namespace ConfigSettings.Patch
       var importFrom = this.TryGetImportFrom(filePath);
       if (importFrom == null)
       {
-        var absolutePath = GetAbsoluteImportPath(filePath, settingsFilePath);
-        importFrom = new Variable(settingsFilePath, filePath, absolutePath, comments);
+        importFrom = new Variable(settingsFilePath, filePath, Path.GetFileName(filePath), comments);
         this.rootImports.Add(importFrom);
         return;
       }
       
-      importFrom.Update(Path.GetFileName(filePath), comments);
+      // Избавится от путаницы с импортами.
+      importFrom.Update(filePath, comments);
     }
 
     /// <summary>
@@ -536,6 +536,8 @@ namespace ConfigSettings.Patch
         return;
 
       this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
+      var absolutePath = GetAbsoluteImportPath(from, settingsFilePath);
+      ParseSettingsSource(absolutePath);
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)

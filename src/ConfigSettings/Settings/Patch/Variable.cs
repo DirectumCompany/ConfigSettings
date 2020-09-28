@@ -28,7 +28,6 @@ namespace ConfigSettings.Settings.Patch
     /// </summary>
     public IReadOnlyList<string> Comments { get; private set;}
 
-    /// <inheritdoc />
     public override bool Equals(object obj)
     {
       return base.Equals(obj);
@@ -36,15 +35,14 @@ namespace ConfigSettings.Settings.Patch
 
     protected bool Equals(Variable other)
     {
-      return Name == other.Name && Value == other.Value;
+      return Name == other.Name && FilePath == other.FilePath;
     }
 
-    /// <inheritdoc />
     public override int GetHashCode()
     {
       unchecked
       {
-        return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (Value != null ? Value.GetHashCode() : 0);
+        return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (FilePath != null ? FilePath.GetHashCode() : 0);
       }
     }
 
