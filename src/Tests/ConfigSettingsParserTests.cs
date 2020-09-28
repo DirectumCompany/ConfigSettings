@@ -87,7 +87,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveBlockInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetBlockValue("testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
+      parser.AddOrUpdateBlock("testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
     <tenant name=""beta"" user=""alpha_user"" />");
       parser.Save();
 
@@ -157,7 +157,7 @@ namespace ConfigSettings.Tests
         new TestTenant { Name = "t1"},
         new TestTenant {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock("testBlockName", true, tenants);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -178,7 +178,7 @@ namespace ConfigSettings.Tests
         new TestTenantWithCustomRootElementName { Name = "t1"},
         new TestTenantWithCustomRootElementName {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock("testBlockName", true, tenants);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -224,7 +224,7 @@ namespace ConfigSettings.Tests
         },
       };
 
-      parser.SetBlockValue("tenantGroups", true, tenantGroups);
+      parser.AddOrUpdateBlock("tenantGroups", true, tenantGroups);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
@@ -254,7 +254,7 @@ namespace ConfigSettings.Tests
 
       var nestedTenantList = new List<TestNestedTenants> { new TestNestedTenants { Tenants = tenantList } };
 
-      parser.SetBlockValue("nestedTenantGroups", true, nestedTenantList);
+      parser.AddOrUpdateBlock("nestedTenantGroups", true, nestedTenantList);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
@@ -279,7 +279,7 @@ namespace ConfigSettings.Tests
       var db1 = new TestPlugin();
       db1.Attributes.Add("name", "name_value");
 
-      parser.SetBlockValue("TestPluginSettings", true, new List<TestPlugin>
+      parser.AddOrUpdateBlock("TestPluginSettings", true, new List<TestPlugin>
       {
         da1,
         db1

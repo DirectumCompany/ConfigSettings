@@ -28,7 +28,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Блоки.
     /// </summary>
-    private readonly IDictionary<string, BlockSetting> blocks = new Dictionary<string, BlockSetting>();
+    private readonly IList<BlockSetting> blocks = new List<BlockSetting>();
 
     /// <summary>
     /// Импорты.
@@ -40,17 +40,17 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Корневой файл настроек.
     /// </summary>
-    protected string rootSettingsFilePath;
+    public string RootSettingsFilePath { get; protected set; }
 
     /// <summary>
     /// Признак, что есть настройка доступности/недоступности блоков.
     /// </summary>
-    public bool HasEnabledOrDisabledBlocks { get { return this.blocks.Any(b => b.Value.IsEnabled != null); } }
+    public bool HasEnabledOrDisabledBlocks { get { return this.blocks.Any(b => b.IsEnabled != null); } }
 
     /// <summary>
     /// Признак, что есть настройка содержимого блоков.
     /// </summary>
-    public bool HasContentBlocks { get { return this.blocks.Any(b => !string.IsNullOrEmpty(b.Value.Content)); } }
+    public bool HasContentBlocks { get { return this.blocks.Any(b => !string.IsNullOrEmpty(b.Content)); } }
 
     private readonly List<CommentValue> comments = new List<CommentValue>();
 
@@ -68,7 +68,7 @@ namespace ConfigSettings.Patch
       foreach (var pair in this.rootImports)
       {
         var filePath = pair.Key;
-        if (filePath != this.rootSettingsFilePath)
+        if (filePath != this.RootSettingsFilePath)
         {
           var sourceConfigFile = pair.Value.FilePath;
           result.Add(GetAbsoluteImportPath(filePath, sourceConfigFile));
@@ -102,7 +102,7 @@ namespace ConfigSettings.Patch
 
     private bool IsBlockAccessible(string blockName, bool accessibility)
     {
-      return this.blocks.TryGetValue(blockName, out var blockSetting) && blockSetting.IsEnabled == accessibility;
+      return this.TryGetBlock(blockName)?.IsEnabled == accessibility;
     }
 
     /// <summary>
@@ -132,12 +132,12 @@ namespace ConfigSettings.Patch
     /// <returns>Содержимым блока.</returns>
     public string GetBlockContent(string blockName)
     {
-      return this.blocks.TryGetValue(blockName, out var blockSetting) ? blockSetting.Content : null;
+      return this.TryGetBlock(blockName)?.Content;
     }
 
     private string GetBlockContentWithoutRoot(string blockName)
     {
-      return this.blocks.TryGetValue(blockName, out var blockSetting) ? blockSetting.ContentWithoutRoot : null;
+      return this.TryGetBlock(blockName)?.ContentWithoutRoot;
     }
 
     /// <summary>
@@ -212,15 +212,16 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Установить значение переменной, указанное в настройке.
     /// </summary>
+    /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="variableName">Имя переменной.</param>
     /// <param name="variableValue">Значение переменной.</param>
     /// <param name="comments">Комментарии.</param>
-    public void AddOrUpdateVariable(string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
+    public void AddOrUpdateVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
       var newValue = this.TryGetVariable(variableName);
       if (newValue == null)
       {
-        newValue = new Variable(this.rootSettingsFilePath, variableName, variableValue);
+        newValue = new Variable(settingsFilePath, variableName, variableValue);
         this.variables.Add(newValue);
         return;
       }
@@ -242,15 +243,16 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Установить значение метапеременной, указанное в настройке.
     /// </summary>
+    /// <param name="settingsFilePath">Источник метапеременной.</param>
     /// <param name="variableName">Имя переменной.</param>
     /// <param name="variableValue">Значение переменной.</param>
     /// <param name="comments">Комментарии.</param>
-    public void AddOrUpdateMetaVariable(string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
+    public void AddOrUpdateMetaVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
       var newValue = this.TryGetVariable(variableName);
       if (newValue == null)
       {
-        newValue = new Variable(this.rootSettingsFilePath, variableName, variableValue);
+        newValue = new Variable(settingsFilePath, variableName, variableValue);
         this.metaVariables.Add(newValue);
         return;
       }
@@ -260,35 +262,49 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Установить значение блока.
+    /// Получить блок..
     /// </summary>
-    /// <param name="variableName">Имя блока.</param>
-    /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="blockContent">Содержимое блока в виде строки.</param>
-    public void SetBlockValue(string variableName, bool? isBlockEnabled, string blockContent)
+    /// <param name="blockName">Имя блока.</param>
+    /// <returns>Блок или null.</returns>
+    private BlockSetting TryGetBlock(string blockName)
     {
-      var blockContentWithRoot = $@"<block name=""{variableName}"">{blockContent}</block>";
-      if (isBlockEnabled != null)
-        blockContentWithRoot = $@"<block name=""{variableName}"" enabled=""{isBlockEnabled}"" >{blockContent}</block>";
-      var newValue = this.HasBlock(variableName)
-        ? new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.blocks[variableName].FilePath)
-        : new BlockSetting(isBlockEnabled, blockContentWithRoot, blockContent, this.rootSettingsFilePath);
-      if (this.blocks.ContainsKey(variableName))
-        newValue.Comments = this.blocks[variableName].Comments;
-      this.blocks[variableName] = newValue;
+      return this.blocks.LastOrDefault(b => b.Name == blockName);
     }
 
     /// <summary>
     /// Установить значение блока.
     /// </summary>
-    /// <param name="variableName">Имя блока.</param>
+    /// <param name="blockName">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="blockContent">Содержимое блока в виде строки.</param>
+    public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContent, IReadOnlyList<string> comments = null)
+    {
+      var blockContentWithRoot = $@"<block name=""{blockName}"">{blockContent}</block>";
+      if (isBlockEnabled != null)
+        blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" >{blockContent}</block>";
+
+      var block = this.TryGetBlock(blockName);
+      if (block == null)
+      {
+        block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot, blockContent, comments);
+        this.blocks.Add(block);
+        return;
+      }
+      
+      block.Update(isBlockEnabled, blockContentWithRoot, blockContent, comments);
+    }
+
+    /// <summary>
+    /// Установить значение блока.
+    /// </summary>
+    /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
     /// <param name="block">Типизированный блок.</param>
     /// <typeparam name="T">Тип блока.</typeparam>
-    public void SetBlockValue<T>(string variableName, bool? isBlockEnabled, T block) where T : class
+    public void AddOrUpdateBlock<T>(string settingsFilePath, string blockName, bool? isBlockEnabled, T block, IReadOnlyList<string> comments = null) where T : class
     {
       var blockContent = BlockParser.Serialize(block);
-      this.SetBlockValue(variableName, isBlockEnabled, blockContent);
+      this.AddOrUpdateBlock(settingsFilePath, blockName, isBlockEnabled, blockContent);
     }
 
     /// <summary>
@@ -296,15 +312,20 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="variableName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
-    public void SetBlockAccessibility(string variableName, bool isBlockEnabled)
+    /// <param name="settingsFilePath">Источник настройки.</param>
+    public void SetBlockAccessibility(string settingsFilePath, string blockName, bool isBlockEnabled)
     {
-      var blockContentWithRoot = $@"<block name=""{variableName}"" enabled=""{isBlockEnabled}"" ></block>";
-      var newValue = this.HasBlock(variableName)
-        ? new BlockSetting(true, blockContentWithRoot, null, this.blocks[variableName].FilePath)
-        : new BlockSetting(true, blockContentWithRoot, null, this.rootSettingsFilePath);
-      if (this.blocks.ContainsKey(variableName))
-        newValue.Comments = this.blocks[variableName].Comments;
-      this.blocks[variableName] = newValue;
+      var blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" ></block>";
+      
+      var block = this.TryGetBlock(blockName);
+      if (block == null)
+      {
+        block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot);
+        this.blocks.Add(block);
+        return;
+      }
+      
+      block.Update(isBlockEnabled, block.Content, block.ContentWithoutRoot, block.Comments);
     }
 
 
@@ -316,7 +337,7 @@ namespace ConfigSettings.Patch
     {
       var newValue = this.HasImportFrom(filePath)
         ? new Variable(Path.GetFileName(filePath), this.GetImportFrom(filePath).FilePath)
-        : new Variable(Path.GetFileName(filePath), this.rootSettingsFilePath);
+        : new Variable(Path.GetFileName(filePath), this.RootSettingsFilePath);
       this.rootImports[filePath] = newValue;
     }
 
@@ -337,7 +358,7 @@ namespace ConfigSettings.Patch
     /// <returns>True, если блок существует.</returns>
     public bool HasBlock(string variableName)
     {
-      return this.blocks.ContainsKey(variableName);
+      return this.blocks.Select(variable => variable.Name == variableName).FirstOrDefault();
     }
 
     /// <summary>
@@ -412,13 +433,13 @@ namespace ConfigSettings.Patch
         return;
       this.isParsed = true;
 
-      if (string.IsNullOrEmpty(this.rootSettingsFilePath))
+      if (string.IsNullOrEmpty(this.RootSettingsFilePath))
         return;
 
       // Добавляем корневой элемент.
-      this.rootImports[this.rootSettingsFilePath] = new Variable(Path.GetFileName(this.rootSettingsFilePath), this.rootSettingsFilePath);
+      this.rootImports[this.RootSettingsFilePath] = new Variable(Path.GetFileName(this.RootSettingsFilePath), this.RootSettingsFilePath);
 
-      this.ParseSettingsSource(this.rootSettingsFilePath);
+      this.ParseSettingsSource(this.RootSettingsFilePath);
     }
 
     /// <summary>
@@ -518,8 +539,8 @@ namespace ConfigSettings.Patch
 
     private void ParseBlock(string settingsFilePath, XElement element)
     {
-      var nameAttribute = element.Attribute("name");
-      if (string.IsNullOrEmpty(nameAttribute?.Value) && !this.variables.ContainsKey(nameAttribute.Value))
+      var name = element.Attribute("name")?.Value;
+      if (string.IsNullOrEmpty(name))
         return;
 
       var enabledAttribute = element.Attribute("enabled");
@@ -533,41 +554,36 @@ namespace ConfigSettings.Patch
       }
 
       var blockContentWithoutRoot = string.Concat(element.Nodes());
-
       var blockContent = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
-      this.blocks[nameAttribute.Value] = new BlockSetting(isBlockEnabled, blockContent, blockContentWithoutRoot, settingsFilePath);
-      if (isBlockEnabled != null)
+
+      var block = this.TryGetBlock(name);
+      if (block == null)
       {
-        this.variables[nameAttribute.Value] = new Variable(isBlockEnabled.Value ? "true" : "false", settingsFilePath);
-        this.variables[nameAttribute.Value].Comments = this.GetComments(element);
+        this.blocks.Add(new BlockSetting(settingsFilePath, name, isBlockEnabled, blockContent, blockContentWithoutRoot, this.GetComments(element)));
+        return;
       }
-      this.blocks[nameAttribute.Value].Comments = this.GetComments(element);
+      
+      block.Update(isBlockEnabled, blockContent, blockContentWithoutRoot, this.GetComments(element));
     }
 
     private void ParseMeta(string settingsFilePath, XElement element)
     {
-      var nameAttribute = element.Attribute("name");
-      var valueAttribute = element.Attribute("value");
-      if (nameAttribute != null && valueAttribute != null)
-      {
-        if (!string.IsNullOrEmpty(nameAttribute.Value))
-          this.metaVariables[nameAttribute.Value] = new Variable(valueAttribute.Value, settingsFilePath);
-      }
-      this.metaVariables[nameAttribute.Value].Comments = this.GetComments(element);
+      var name = element.Attribute("name")?.Value;
+      var value = element.Attribute("value")?.Value;
+      if (string.IsNullOrEmpty(name))
+        return;
+
+      this.AddOrUpdateMetaVariable(settingsFilePath, name, value, this.GetComments(element));
     }
 
     private void ParseVar(string settingsFilePath, XElement element)
     {
-      var nameAttribute = element.Attribute("name");
-      var valueAttribute = element.Attribute("value");
-      if (nameAttribute != null && valueAttribute != null)
-      {
-        if (!string.IsNullOrEmpty(nameAttribute.Value) && !this.variables.ContainsKey(nameAttribute.Value))
-        {
-          this.variables[nameAttribute.Value] = new Variable(valueAttribute.Value, settingsFilePath);
-          this.variables[nameAttribute.Value].Comments = this.GetComments(element);
-        }
-      }
+      var name = element.Attribute("name")?.Value;
+      var value = element.Attribute("value")?.Value;
+      if (string.IsNullOrEmpty(name))
+        return;
+
+      this.AddOrUpdateVariable(settingsFilePath, name, value, this.GetComments(element));
     }
 
     /// <summary>
@@ -671,7 +687,7 @@ namespace ConfigSettings.Patch
     /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
     public ConfigSettingsParser(string settingsFilePath)
     {
-      this.rootSettingsFilePath = settingsFilePath;
+      this.RootSettingsFilePath = settingsFilePath;
       this.ParseRootSettingsSource();
     }
 

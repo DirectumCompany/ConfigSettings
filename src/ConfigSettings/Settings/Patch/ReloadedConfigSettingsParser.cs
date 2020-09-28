@@ -120,7 +120,7 @@ namespace ConfigSettings.Patch
       this.reloadHandler = reloadHandler;
       this.errorHandler = errorHandler;
       this.waitBeforeReload = waitBeforeReload ?? TimeSpan.FromSeconds(5);
-      this.rootSettingsFilePath = settingsFilePath;
+      this.RootSettingsFilePath = settingsFilePath;
       this.TryParseRootSettingsSource();
     }
 

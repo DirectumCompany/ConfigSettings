@@ -91,7 +91,7 @@ namespace ConfigSettings
     /// <returns>Типизированный блок.</returns>
     public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
     {
-      this.configSettingsParser.SetBlockValue(name, isBlockEnabled, block);
+      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, isBlockEnabled, block);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ namespace ConfigSettings
     /// <typeparam name="T">Тип переменной.</typeparam>
     public void Set<T>(string name, T value)
     {
-      this.configSettingsParser.AddOrUpdateVariable(name, value.ToString());
+      this.configSettingsParser.AddOrUpdateVariable(this.configSettingsParser.roo, name, value.ToString());
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ namespace ConfigSettings
     /// <param name="value">Значение блока.</param>
     public void SetBlock(string name, bool? enabled, string value)
     {
-      this.configSettingsParser.SetBlockValue(name, enabled, value);
+      this.configSettingsParser.AddOrUpdateBlock(name, enabled, value);
     }
 
     /// <summary>
