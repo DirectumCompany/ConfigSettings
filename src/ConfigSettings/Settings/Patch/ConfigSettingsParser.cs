@@ -18,12 +18,12 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Переменные (имя, значение).
     /// </summary>
-    private readonly IDictionary<string, VariableValue> variables = new Dictionary<string, VariableValue>();
+    private readonly IList<Variable> variables = new List<Variable>();
 
     /// <summary>
     /// Метапеременные.
     /// </summary>
-    private readonly IDictionary<string, VariableValue> metaVariables = new Dictionary<string, VariableValue>();
+    private readonly IList<Variable> metaVariables = new List<Variable>();
 
     /// <summary>
     /// Блоки.
@@ -33,7 +33,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Импорты.
     /// </summary>
-    private readonly IDictionary<string, VariableValue> rootImports = new Dictionary<string, VariableValue>();
+    private readonly IDictionary<string, Variable> rootImports = new Dictionary<string, Variable>();
 
     private bool isParsed;
 
@@ -179,18 +179,17 @@ namespace ConfigSettings.Patch
     /// <returns>True - если значение указано.</returns>
     public bool HasVariable(string variableName)
     {
-      return this.variables.ContainsKey(variableName);
-    }
-
+      return this.variables.Select(variable => variable.Name == variableName).FirstOrDefault();
+    }  
+    
     /// <summary>
-    /// Есть корневая переменная. TODO: Что это?
+    /// Получить переменную.
     /// </summary>
-    /// <param name="variableName">Имя перемнной.</param>
-    /// <returns>True, если ест.</returns>
-    public bool HasRootVariable(string variableName)
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Переменная или null.</returns>
+    public Variable TryGetVariable(string variableName)
     {
-      return this.variables.Any(v => v.Value.FilePath.Equals(this.rootSettingsFilePath, StringComparison.OrdinalIgnoreCase) &&
-                                     v.Key.Equals(variableName));
+      return this.variables.LastOrDefault(variable => variable.Name == variableName);
     }
 
     /// <summary>
@@ -200,23 +199,33 @@ namespace ConfigSettings.Patch
     /// <returns>Знаение переменной.</returns>
     public string GetVariableValue(string variableName)
     {
-      return this.variables[variableName].Value;
+      string result = null;
+      foreach (var variable in this.variables)
+      {
+        if (variable.Name == variableName)
+          result = variable.Value;
+      }
+
+      return result;
     }
 
     /// <summary>
-    /// Устаноить значение переменной, указанное в настройке.
+    /// Установить значение переменной, указанное в настройке.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
     /// <param name="variableValue">Значение переменной.</param>
-    public void SetVariableValue(string variableName, string variableValue)
+    /// <param name="comments">Комментарии.</param>
+    public void AddOrUpdateVariable(string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.HasVariable(variableName) ?
-        new VariableValue(variableValue, this.variables[variableName].FilePath) : new VariableValue(variableValue, this.rootSettingsFilePath);
-
-      if (this.variables.ContainsKey(variableName))
-        newValue.Comments = this.variables[variableName].Comments;
-
-      this.variables[variableName] = newValue;
+      var newValue = this.TryGetVariable(variableName);
+      if (newValue == null)
+      {
+        newValue = new Variable(this.rootSettingsFilePath, variableName, variableValue);
+        this.variables.Add(newValue);
+        return;
+      }
+      
+      newValue.Update(variableValue, comments);
     }
 
     /// <summary>
@@ -225,23 +234,29 @@ namespace ConfigSettings.Patch
     /// <param name="variableName">Имя переменной.</param>
     public void RemoveVariable(string variableName)
     {
-      if (this.HasRootVariable(variableName))
-        this.variables.Remove(variableName);
+      var variable = this.TryGetVariable(variableName);
+      if (variable != null)
+        this.variables.Remove(variable);
     }
 
     /// <summary>
-    /// Устаноить значение метапеременной, указанное в настройке.
+    /// Установить значение метапеременной, указанное в настройке.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
     /// <param name="variableValue">Значение переменной.</param>
-    public void SetMetaVariableValue(string variableName, string variableValue)
+    /// <param name="comments">Комментарии.</param>
+    public void AddOrUpdateMetaVariable(string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.HasMetaVariable(variableName) ?
-        new VariableValue(variableValue, this.metaVariables[variableName].FilePath) : new VariableValue(variableValue, this.rootSettingsFilePath);
+      var newValue = this.TryGetVariable(variableName);
+      if (newValue == null)
+      {
+        newValue = new Variable(this.rootSettingsFilePath, variableName, variableValue);
+        this.metaVariables.Add(newValue);
+        return;
+      }
+      
+      newValue.Update(variableValue, comments);
 
-      if (this.metaVariables.ContainsKey(variableName))
-        newValue.Comments = this.metaVariables[variableName].Comments;
-      this.metaVariables[variableName] = newValue;
     }
 
     /// <summary>
@@ -300,8 +315,8 @@ namespace ConfigSettings.Patch
     public void SetImportFrom(string filePath)
     {
       var newValue = this.HasImportFrom(filePath)
-        ? new VariableValue(Path.GetFileName(filePath), this.GetImportFrom(filePath).FilePath)
-        : new VariableValue(Path.GetFileName(filePath), this.rootSettingsFilePath);
+        ? new Variable(Path.GetFileName(filePath), this.GetImportFrom(filePath).FilePath)
+        : new Variable(Path.GetFileName(filePath), this.rootSettingsFilePath);
       this.rootImports[filePath] = newValue;
     }
 
@@ -312,7 +327,7 @@ namespace ConfigSettings.Patch
     /// <returns>True - если значение указано.</returns>
     public bool HasMetaVariable(string variableName)
     {
-      return this.metaVariables.ContainsKey(variableName);
+      return this.metaVariables.Select(variable => variable.Name == variableName).FirstOrDefault();
     }
 
     /// <summary>
@@ -332,7 +347,14 @@ namespace ConfigSettings.Patch
     /// <returns>Знаение переменной.</returns>
     public string GetMetaVariableValue(string variableName)
     {
-      return this.metaVariables[variableName].Value;
+      string result = null;
+      foreach (var variable in this.metaVariables)
+      {
+        if (variable.Name == variableName)
+          result = variable.Value;
+      }
+
+      return result;
     }
 
     /// <summary>
@@ -366,7 +388,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
     /// <returns>Переменная с импортом.</returns>
-    public VariableValue GetImportFrom(string fileName)
+    public Variable GetImportFrom(string fileName)
     {
       return this.GetImportsFrom(fileName).First().Value;
     }
@@ -376,7 +398,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
     /// <returns>Импорты файла.</returns>
-    private IEnumerable<KeyValuePair<string, VariableValue>> GetImportsFrom(string fileName)
+    private IEnumerable<KeyValuePair<string, Variable>> GetImportsFrom(string fileName)
     {
       return this.rootImports.Where(v => v.Value.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
     }
@@ -394,7 +416,7 @@ namespace ConfigSettings.Patch
         return;
 
       // Добавляем корневой элемент.
-      this.rootImports[this.rootSettingsFilePath] = new VariableValue(Path.GetFileName(this.rootSettingsFilePath), this.rootSettingsFilePath);
+      this.rootImports[this.rootSettingsFilePath] = new Variable(Path.GetFileName(this.rootSettingsFilePath), this.rootSettingsFilePath);
 
       this.ParseSettingsSource(this.rootSettingsFilePath);
     }
@@ -437,8 +459,8 @@ namespace ConfigSettings.Patch
         }
         foreach (var node in settings.Root.Nodes())
         {
-          if (node is XComment)
-            this.ParseComment(settingsFilePath, node as XComment);
+          if (node is XComment comment)
+            this.ParseComment(settingsFilePath, comment);
         }
 
       }
@@ -455,8 +477,7 @@ namespace ConfigSettings.Patch
     /// <param name="element">Элемент комменария.</param>
     private void ParseComment(string settingsFilePath, XComment element)
     {
-      var next = element.NextNode as XElement;
-      if (next != null)
+      if (element.NextNode is XElement next)
       {
         var nextName = next.Name.LocalName;
         if (nextName == "import" || nextName == "meta" || nextName == "var" || nextName == "block")
@@ -472,15 +493,11 @@ namespace ConfigSettings.Patch
     /// <returns>Строка с комменарием.</returns>
     private List<string> GetComments(XNode element)
     {
-      if (element.PreviousNode != null)
+      if (element.PreviousNode is XComment comment)
       {
-        var comment = element.PreviousNode as XComment;
-        if (comment != null)
-        {
-          var previousComments = GetComments(element.PreviousNode);
-          previousComments.Add(comment.Value);
-          return previousComments;
-        }
+        var previousComments = GetComments(element.PreviousNode);
+        previousComments.Add(comment.Value);
+        return previousComments;
       }
       return new List<string>();
     }
@@ -494,7 +511,7 @@ namespace ConfigSettings.Patch
       var filePath = fromAttribute.Value;
       var absolutePath = GetAbsoluteImportPath(filePath, settingsFilePath);
 
-      this.rootImports[filePath] = new VariableValue(Path.GetFileName(absolutePath), settingsFilePath);
+      this.rootImports[filePath] = new Variable(Path.GetFileName(absolutePath), settingsFilePath);
       this.rootImports[filePath].Comments = this.GetComments(element);
       this.ParseSettingsSource(absolutePath);
     }
@@ -521,7 +538,7 @@ namespace ConfigSettings.Patch
       this.blocks[nameAttribute.Value] = new BlockSetting(isBlockEnabled, blockContent, blockContentWithoutRoot, settingsFilePath);
       if (isBlockEnabled != null)
       {
-        this.variables[nameAttribute.Value] = new VariableValue(isBlockEnabled.Value ? "true" : "false", settingsFilePath);
+        this.variables[nameAttribute.Value] = new Variable(isBlockEnabled.Value ? "true" : "false", settingsFilePath);
         this.variables[nameAttribute.Value].Comments = this.GetComments(element);
       }
       this.blocks[nameAttribute.Value].Comments = this.GetComments(element);
@@ -534,7 +551,7 @@ namespace ConfigSettings.Patch
       if (nameAttribute != null && valueAttribute != null)
       {
         if (!string.IsNullOrEmpty(nameAttribute.Value))
-          this.metaVariables[nameAttribute.Value] = new VariableValue(valueAttribute.Value, settingsFilePath);
+          this.metaVariables[nameAttribute.Value] = new Variable(valueAttribute.Value, settingsFilePath);
       }
       this.metaVariables[nameAttribute.Value].Comments = this.GetComments(element);
     }
@@ -547,7 +564,7 @@ namespace ConfigSettings.Patch
       {
         if (!string.IsNullOrEmpty(nameAttribute.Value) && !this.variables.ContainsKey(nameAttribute.Value))
         {
-          this.variables[nameAttribute.Value] = new VariableValue(valueAttribute.Value, settingsFilePath);
+          this.variables[nameAttribute.Value] = new Variable(valueAttribute.Value, settingsFilePath);
           this.variables[nameAttribute.Value].Comments = this.GetComments(element);
         }
       }

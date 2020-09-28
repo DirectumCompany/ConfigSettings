@@ -96,7 +96,7 @@ namespace ConfigSettingsTests
     {
       var tempFile = this.CreateSettings(string.Join("\n", linesToAdd));
       var parser = new ConfigSettingsParser(tempFile);
-      parser.SetVariableValue("testVariable", @" 666 ");
+      parser.AddOrUpdateVariable("testVariable", @" 666 ");
       parser.Save();
       IsFileContainLines(tempFile, linesToAdd).Should().BeTrue();
     }

@@ -112,7 +112,7 @@ namespace ConfigSettings
     /// <typeparam name="T">Тип переменной.</typeparam>
     public void Set<T>(string name, T value)
     {
-      this.configSettingsParser.SetVariableValue(name, value.ToString());
+      this.configSettingsParser.AddOrUpdateVariable(name, value.ToString());
     }
 
     /// <summary>

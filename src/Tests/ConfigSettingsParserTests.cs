@@ -61,7 +61,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveVariablesInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetVariableValue("testVariableName", "testVariableValue");
+      parser.AddOrUpdateVariable("testVariableName", "testVariableValue");
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -74,7 +74,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveMetaVariableInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetMetaVariableValue("testMetaVariableName", "testVariableValue");
+      parser.AddOrUpdateMetaVariable("testMetaVariableName", "testVariableValue");
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
