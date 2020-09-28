@@ -33,7 +33,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Импорты.
     /// </summary>
-    private readonly IDictionary<string, Variable> rootImports = new Dictionary<string, Variable>();
+    private readonly IList<Variable> rootImports = new List<Variable>();
 
     private bool isParsed;
 
@@ -65,12 +65,12 @@ namespace ConfigSettings.Patch
     public IReadOnlyList<string> GetAllImports()
     {
       var result = new List<string>();
-      foreach (var pair in this.rootImports)
+      foreach (var rootImport in this.rootImports)
       {
-        var filePath = pair.Key;
+        var filePath = rootImport.Name;
         if (filePath != this.RootSettingsFilePath)
         {
-          var sourceConfigFile = pair.Value.FilePath;
+          var sourceConfigFile = rootImport.FilePath;
           result.Add(GetAbsoluteImportPath(filePath, sourceConfigFile));
         }
       }
@@ -258,7 +258,6 @@ namespace ConfigSettings.Patch
       }
       
       newValue.Update(variableValue, comments);
-
     }
 
     /// <summary>
@@ -333,12 +332,17 @@ namespace ConfigSettings.Patch
     /// Усатновить import from.
     /// </summary>
     /// <param name="filePath">Путь к файлу.</param>
-    public void SetImportFrom(string filePath)
+    public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.HasImportFrom(filePath)
-        ? new Variable(Path.GetFileName(filePath), this.GetImportFrom(filePath).FilePath)
-        : new Variable(Path.GetFileName(filePath), this.RootSettingsFilePath);
-      this.rootImports[filePath] = newValue;
+      var importFrom = this.TryGetImportFrom(filePath);
+      if (importFrom == null)
+      {
+        importFrom = new Variable(settingsFilePath, filePath, Path.GetFileName(filePath), comments);
+        this.rootImports.Add(importFrom);
+        return;
+      }
+      
+      importFrom.Update(Path.GetFileName(filePath), comments);
     }
 
     /// <summary>
@@ -409,9 +413,9 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
     /// <returns>Переменная с импортом.</returns>
-    public Variable GetImportFrom(string fileName)
+    public Variable TryGetImportFrom(string fileName)
     {
-      return this.GetImportsFrom(fileName).First().Value;
+      return this.GetImportsFrom(fileName).FirstOrDefault();
     }
 
     /// <summary>
@@ -419,9 +423,9 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
     /// <returns>Импорты файла.</returns>
-    private IEnumerable<KeyValuePair<string, Variable>> GetImportsFrom(string fileName)
+    private IEnumerable<Variable> GetImportsFrom(string fileName)
     {
-      return this.rootImports.Where(v => v.Value.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
+      return this.rootImports.Where(v => v.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -437,7 +441,7 @@ namespace ConfigSettings.Patch
         return;
 
       // Добавляем корневой элемент.
-      this.rootImports[this.RootSettingsFilePath] = new Variable(Path.GetFileName(this.RootSettingsFilePath), this.RootSettingsFilePath);
+      this.rootImports.Add(new Variable(this.RootSettingsFilePath, this.RootSettingsFilePath, Path.GetFileName(this.RootSettingsFilePath)));
 
       this.ParseSettingsSource(this.RootSettingsFilePath);
     }

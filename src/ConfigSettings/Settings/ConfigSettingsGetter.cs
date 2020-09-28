@@ -132,7 +132,7 @@ namespace ConfigSettings
     /// <param name="filePath">Путь к файлу.</param>
     public void SetImport(string filePath)
     {
-      this.configSettingsParser.SetImportFrom(filePath);
+      this.configSettingsParser.AddOrUpdateImortFrom(this.configSettingsParser.RootSettingsFilePath, filePath);
     }
 
     /// <summary>
