@@ -254,6 +254,7 @@ namespace ConfigSettings.Patch
     /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
     /// <param name="blockContentWithoutRoot">Содержимое блока в виде строки.</param>
+    /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContentWithoutRoot, IReadOnlyList<string> comments = null)
     {
       var blockContentWithRoot = !string.IsNullOrEmpty(blockContentWithoutRoot)
@@ -291,6 +292,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="filePath">Путь к файлу.</param>
+    /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
       var importFrom = this.TryGetImportFrom(filePath);

@@ -32,18 +32,28 @@ namespace ConfigSettings.Patch
     /// </summary>
     public IReadOnlyList<string> Comments { get; private set;}
 
+    /// <summary>
+    /// Источник настройки.
+    /// </summary>
     public string FilePath { get; }
 
+    /// <inheritdoc />
     public override bool Equals(object obj)
     {
       return base.Equals(obj);
     }
 
+    /// <summary>
+    /// Equality.
+    /// </summary>
+    /// <param name="other">Object.</param>
+    /// <returns>True, if Equals.</returns>
     protected bool Equals(BlockSetting other)
     {
       return Name == other.Name && FilePath == other.FilePath;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
       unchecked
@@ -55,10 +65,10 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Обновить свойства блока.
     /// </summary>
-    /// <param name="isEnabled"></param>
-    /// <param name="content"></param>
-    /// <param name="contentWithoutRoot"></param>
-    /// <param name="comments"></param>
+    /// <param name="isEnabled">Доступность.</param>
+    /// <param name="content">Содержимое с корневым элементом.</param>
+    /// <param name="contentWithoutRoot">Содержимое без корневого элемента.</param>
+    /// <param name="comments">Комментарии.</param>
     public void Update(bool? isEnabled, string content = null, string contentWithoutRoot = null,
       IReadOnlyList<string> comments = null)
     {
@@ -68,6 +78,15 @@ namespace ConfigSettings.Patch
       this.Comments = comments;
     }
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="filePath">Источник настройки.</param>
+    /// <param name="name">Имя блока.</param>
+    /// <param name="isEnabled">Доступность.</param>
+    /// <param name="content">Содержимое с корневым элементом.</param>
+    /// <param name="contentWithoutRoot">Содержимое без корневого элемента.</param>
+    /// <param name="comments">Комментарии.</param>
     public BlockSetting(string filePath, string name,  bool? isEnabled, string content = null, string contentWithoutRoot = null, IReadOnlyList<string> comments = null)
     {
       this.FilePath = filePath;

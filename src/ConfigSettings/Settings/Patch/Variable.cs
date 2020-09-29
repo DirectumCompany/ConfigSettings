@@ -28,16 +28,23 @@ namespace ConfigSettings.Settings.Patch
     /// </summary>
     public IReadOnlyList<string> Comments { get; private set;}
 
+    /// <inheritdoc />
     public override bool Equals(object obj)
     {
       return base.Equals(obj);
     }
 
+    /// <summary>
+    /// Equality.
+    /// </summary>
+    /// <param name="other">Object.</param>
+    /// <returns>True, if Equals.</returns>
     protected bool Equals(Variable other)
     {
       return Name == other.Name && FilePath == other.FilePath;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
       unchecked
@@ -46,6 +53,11 @@ namespace ConfigSettings.Settings.Patch
       }
     }
 
+    /// <summary>
+    /// Обновить значение переменной.
+    /// </summary>
+    /// <param name="value">Значение.</param>
+    /// <param name="comments">Комментарии.</param>
     public void Update(string value = null, IReadOnlyList<string> comments = null)
     {
       this.Value = value;

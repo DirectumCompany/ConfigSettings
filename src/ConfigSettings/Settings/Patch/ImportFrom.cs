@@ -47,16 +47,23 @@ namespace ConfigSettings.Settings.Patch
       this.Comments = comments;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object obj)
     {
       return base.Equals(obj);
     }
 
+    /// <summary>
+    /// Equality.
+    /// </summary>
+    /// <param name="other">Object.</param>
+    /// <returns>True, if Equals.</returns>
     protected bool Equals(ImportFrom other)
     {
       return From == other.From && FilePath == other.FilePath;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
       unchecked
