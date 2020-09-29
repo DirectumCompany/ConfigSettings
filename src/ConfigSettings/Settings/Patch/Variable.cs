@@ -19,7 +19,7 @@ namespace ConfigSettings.Settings.Patch
     public string Value { get; private set; }
 
     /// <summary>
-    /// Источник хранения настройки.
+    /// Источник хранения настройки. Содержит абсолютный путь.
     /// </summary>
     public string FilePath { get; }
 

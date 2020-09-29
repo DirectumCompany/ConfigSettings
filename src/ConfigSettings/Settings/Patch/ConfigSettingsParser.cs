@@ -33,7 +33,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Импорты.
     /// </summary>
-    private readonly IList<Variable> rootImports = new List<Variable>();
+    private readonly IList<ImportFrom> rootImports = new List<ImportFrom>();
 
     private bool isParsed;
 
@@ -62,30 +62,9 @@ namespace ConfigSettings.Patch
     /// Получить список всех импортируемых конфигов, с учётом рекурсии.
     /// </summary>
     /// <returns>Список всех импортируемых конфигов. Все пути в полученном списке - абсолютные пути импортируемых файлов настроек.</returns>
-    public IReadOnlyList<string> GetAllImports()
+    public IReadOnlyList<string> GetAllImportsExceptRoot()
     {
-      var result = new List<string>();
-      foreach (var rootImport in this.rootImports)
-      {
-        var filePath = rootImport.Name;
-        if (filePath != this.RootSettingsFilePath)
-        {
-          var sourceConfigFile = rootImport.FilePath;
-          result.Add(GetAbsoluteImportPath(filePath, sourceConfigFile));
-        }
-      }
-      return result;
-    }
-
-    /// <summary>
-    /// Получить абсолютный путь до импортируемого файла настроек.
-    /// </summary>
-    /// <param name="importFilePath">Импортируемый файл, указанный в атрибуте from.</param>
-    /// <param name="sourceConfigFilePath">Исходный конфигурационный файл, который содержит импорт.</param>
-    /// <returns>Абсолютный путь до импортируемого файла настроек.</returns>
-    private static string GetAbsoluteImportPath(string importFilePath, string sourceConfigFilePath)
-    {
-      return Path.IsPathRooted(importFilePath) ? importFilePath : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceConfigFilePath), importFilePath));
+      return this.rootImports.Where(r => !r.IsRoot).Select(r => r.GetAbsolutePath()).ToList();
     }
 
     private bool? ComputeBlockAccessibility(string blockName)
@@ -332,19 +311,21 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Усатновить import from.
     /// </summary>
+    /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="filePath">Путь к файлу.</param>
-    public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
+    public ImportFrom AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
       var importFrom = this.TryGetImportFrom(filePath);
       if (importFrom == null)
       {
-        importFrom = new Variable(settingsFilePath, filePath, Path.GetFileName(filePath), comments);
+        importFrom = new ImportFrom(settingsFilePath, filePath, false, comments);
         this.rootImports.Add(importFrom);
-        return;
+        return importFrom;
       }
       
       // Избавится от путаницы с импортами.
-      importFrom.Update(filePath, comments);
+      importFrom.TryUpdate(filePath, comments);
+      return importFrom;
     }
 
     /// <summary>
@@ -398,36 +379,31 @@ namespace ConfigSettings.Patch
     /// Удалить импорт файла.
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
-    public void RemoveImportFrom(string fileName)
+    public void TryRemoveImportFrom(string fileName)
     {
-      if (this.HasImportFrom(fileName))
-      {
-        var imports = this.GetImportsFrom(fileName).ToList();
-        foreach (var import in imports)
-        {
-          this.rootImports.Remove(import);
-        }
-      }
+      var importFromToDelete = this.TryGetImportFrom(fileName);
+      if (importFromToDelete?.IsRoot == false)
+        this.rootImports.Remove(importFromToDelete);
     }
 
     /// <summary>
     /// Получить значение импорта.
     /// </summary>
-    /// <param name="fileName">Путь к файлу.</param>
+    /// <param name="filePath">Путь к файлу.</param>
     /// <returns>Переменная с импортом.</returns>
-    public Variable TryGetImportFrom(string fileName)
+    public ImportFrom TryGetImportFrom(string filePath)
     {
-      return this.GetImportsFrom(fileName).FirstOrDefault();
+      return this.GetImportsFrom(filePath).FirstOrDefault();
     }
 
     /// <summary>
     /// Получить все импорты файла.
     /// </summary>
-    /// <param name="fileName">Путь к файлу.</param>
+    /// <param name="filePath">Путь к файлу.</param>
     /// <returns>Импорты файла.</returns>
-    private IEnumerable<Variable> GetImportsFrom(string fileName)
+    private IEnumerable<ImportFrom> GetImportsFrom(string filePath)
     {
-      return this.rootImports.Where(v => v.Value.Equals(Path.GetFileName(fileName), StringComparison.OrdinalIgnoreCase));
+      return this.rootImports.Where(v => v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -443,7 +419,7 @@ namespace ConfigSettings.Patch
         return;
 
       // Добавляем корневой элемент.
-      this.rootImports.Add(new Variable(this.RootSettingsFilePath, this.RootSettingsFilePath, Path.GetFileName(this.RootSettingsFilePath)));
+      this.rootImports.Add(new ImportFrom(this.RootSettingsFilePath, this.RootSettingsFilePath, isRoot: true));
 
       this.ParseSettingsSource(this.RootSettingsFilePath);
     }
@@ -535,9 +511,8 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(from))
         return;
 
-      this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
-      var absolutePath = GetAbsoluteImportPath(from, settingsFilePath);
-      ParseSettingsSource(absolutePath);
+      var importFrom = this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
+      ParseSettingsSource(importFrom.GetAbsolutePath());
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)
@@ -615,15 +590,15 @@ namespace ConfigSettings.Patch
 
       foreach (var rootImport in this.rootImports)
       {
-        var filePath = rootImport.Name;
+        var filePath = rootImport.GetAbsolutePath();
         var rootElement = new XElement("settings");
 
         var rootImportsWithEqualPath = this.rootImports.Where(v => v.FilePath.Equals(filePath) &&
-                                                                   !v.Name.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+                                                                   !v.From.Equals(rootImport.From, StringComparison.OrdinalIgnoreCase));
         foreach (var kvp in rootImportsWithEqualPath)
         {
           this.SaveComments(kvp.Comments, rootElement);
-          rootElement.Add(new XElement("import", new XAttribute("from", kvp.Name)));
+          rootElement.Add(new XElement("import", new XAttribute("from", kvp.From)));
         }
 
         var metaVariablesWithEqualPath = this.metaVariables.Where(v => v.FilePath.Equals(filePath));
