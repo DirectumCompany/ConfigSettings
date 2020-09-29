@@ -184,7 +184,7 @@ namespace ConfigSettings.Tests
     <repository folderName=""base"" solutionType=""Base"" url="""" />
     <repository folderName=""work"" solutionType=""Work"" url="""" />
   </block>
-  <block name=""TEST_TRUE_BLOCK"" enabled=""True"">
+  <block name=""TEST_TRUE_BLOCK"" enabled=""true"">
     <testRepository folderName=""base"" solutionType=""Base"" url="""" />
     <testRepository folderName=""work"" solutionType=""Work"" url="""" />
   </block>

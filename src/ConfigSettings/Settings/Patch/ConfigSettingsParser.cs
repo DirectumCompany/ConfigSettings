@@ -237,9 +237,14 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="blockName">Имя блока.</param>
     /// <returns>Блок или null.</returns>
-    private BlockSetting TryGetBlock(string blockName)
+    public BlockSetting TryGetBlock(string blockName)
     {
       return this.blocks.LastOrDefault(b => b.Name == blockName);
+    }
+
+    private string BlockEnabledXmlPart(bool? enabled)
+    {
+      return enabled == null ? string.Empty : $@" enabled=""{enabled.ToString().ToLower()}""";
     }
 
     /// <summary>
@@ -251,9 +256,7 @@ namespace ConfigSettings.Patch
     /// <param name="blockContentWithoutRoot">Содержимое блока в виде строки.</param>
     public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContentWithoutRoot, IReadOnlyList<string> comments = null)
     {
-      var blockContentWithRoot = $@"<block name=""{blockName}"">{blockContentWithoutRoot}</block>";
-      if (isBlockEnabled != null)
-        blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" >{blockContentWithoutRoot}</block>";
+      var blockContentWithRoot = $@"<block name=""{blockName}""{BlockEnabledXmlPart(isBlockEnabled)}>{blockContentWithoutRoot}</block>";
 
       var block = this.TryGetBlock(blockName);
       if (block == null)
@@ -605,8 +608,7 @@ namespace ConfigSettings.Patch
         foreach (var kvp in blocksWithEqualPath)
         {
           var blockContentWithRoot = string.IsNullOrEmpty(kvp.Content)
-            ? kvp.IsEnabled != null ? $@"<block name=""{kvp.Name}"" enabled=""{kvp.IsEnabled}""></block>"
-              : $@"<block name=""{kvp.Name}""></block>"
+            ? $@"<block name=""{kvp.Name}""{BlockEnabledXmlPart(kvp.IsEnabled)}></block>"
             : kvp.Content;
           var blockContent = XDocument.Parse(blockContentWithRoot);
 
