@@ -45,11 +45,9 @@ namespace ConfigSettings.Patch
       setters.Add(currentSetters);
       foreach (var node in element.Nodes())
       {
-        var commentNode = node as XComment;
-        var elementNode = node as XElement;
-        if (commentNode != null)
+        if (node is XComment commentNode)
           this.VisitComment(commentNode, currentSetters);
-        else if (elementNode != null)
+        else if (node is XElement elementNode)
         {
           this.VisitElement(elementNode, setters);
           currentSetters.Clear();

@@ -158,7 +158,7 @@ namespace ConfigSettings.Patch
     /// <returns>True - если значение указано.</returns>
     public bool HasVariable(string variableName)
     {
-      return this.variables.Select(variable => variable.Name == variableName).FirstOrDefault();
+      return this.TryGetVariable(variableName) != null;
     }  
     
     /// <summary>
@@ -178,14 +178,7 @@ namespace ConfigSettings.Patch
     /// <returns>Знаение переменной.</returns>
     public string GetVariableValue(string variableName)
     {
-      string result = null;
-      foreach (var variable in this.variables)
-      {
-        if (variable.Name == variableName)
-          result = variable.Value;
-      }
-
-      return result;
+      return this.TryGetVariable(variableName)?.Value;
     }
 
     /// <summary>
@@ -255,30 +248,32 @@ namespace ConfigSettings.Patch
     /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="blockContent">Содержимое блока в виде строки.</param>
-    public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContent, IReadOnlyList<string> comments = null)
+    /// <param name="blockContentWithoutRoot">Содержимое блока в виде строки.</param>
+    public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContentWithoutRoot, IReadOnlyList<string> comments = null)
     {
-      var blockContentWithRoot = $@"<block name=""{blockName}"">{blockContent}</block>";
+      var blockContentWithRoot = $@"<block name=""{blockName}"">{blockContentWithoutRoot}</block>";
       if (isBlockEnabled != null)
-        blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" >{blockContent}</block>";
+        blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" >{blockContentWithoutRoot}</block>";
 
       var block = this.TryGetBlock(blockName);
       if (block == null)
       {
-        block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot, blockContent, comments);
+        block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, comments);
         this.blocks.Add(block);
         return;
       }
       
-      block.Update(isBlockEnabled, blockContentWithRoot, blockContent, comments);
+      block.Update(isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, comments);
     }
 
     /// <summary>
     /// Установить значение блока.
     /// </summary>
+    /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
     /// <param name="block">Типизированный блок.</param>
+    /// <param name="comments">Комментарии.</param>
     /// <typeparam name="T">Тип блока.</typeparam>
     public void AddOrUpdateBlock<T>(string settingsFilePath, string blockName, bool? isBlockEnabled, T block, IReadOnlyList<string> comments = null) where T : class
     {
@@ -289,7 +284,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Установить признак доступности.
     /// </summary>
-    /// <param name="variableName">Имя блока.</param>
+    /// <param name="blockName">Имя блока.</param>
     /// <param name="isBlockEnabled">Доступность блока.</param>
     /// <param name="settingsFilePath">Источник настройки.</param>
     public void SetBlockAccessibility(string settingsFilePath, string blockName, bool isBlockEnabled)
@@ -341,11 +336,11 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Проверить наличие блока.
     /// </summary>
-    /// <param name="variableName">Имя блока.</param>
+    /// <param name="blockName">Имя блока.</param>
     /// <returns>True, если блок существует.</returns>
-    public bool HasBlock(string variableName)
+    public bool HasBlock(string blockName)
     {
-      return this.blocks.Select(variable => variable.Name == variableName).FirstOrDefault();
+      return this.TryGetBlock(blockName) != null;
     }
 
     /// <summary>
@@ -372,7 +367,7 @@ namespace ConfigSettings.Patch
     /// <returns>True, если есть импорт с таким именем файла.</returns>
     public bool HasImportFrom(string fileName)
     {
-      return this.GetImportsFrom(fileName).Any();
+      return this.GetImportsFromExceptRoot(fileName).Any();
     }
 
     /// <summary>
@@ -382,7 +377,7 @@ namespace ConfigSettings.Patch
     public void TryRemoveImportFrom(string fileName)
     {
       var importFromToDelete = this.TryGetImportFrom(fileName);
-      if (importFromToDelete?.IsRoot == false)
+      if (importFromToDelete != null)
         this.rootImports.Remove(importFromToDelete);
     }
 
@@ -393,7 +388,7 @@ namespace ConfigSettings.Patch
     /// <returns>Переменная с импортом.</returns>
     public ImportFrom TryGetImportFrom(string filePath)
     {
-      return this.GetImportsFrom(filePath).LastOrDefault();
+      return this.GetImportsFromExceptRoot(filePath).LastOrDefault();
     }
 
     /// <summary>
@@ -401,7 +396,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="filePath">Путь к файлу.</param>
     /// <returns>Импорты файла.</returns>
-    private IEnumerable<ImportFrom> GetImportsFrom(string filePath)
+    private IEnumerable<ImportFrom> GetImportsFromExceptRoot(string filePath)
     {
       return this.rootImports.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
     }
@@ -418,10 +413,11 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(this.RootSettingsFilePath))
         return;
 
-      // Добавляем корневой элемент.
-      this.rootImports.Add(new ImportFrom(this.RootSettingsFilePath, this.RootSettingsFilePath, isRoot: true));
-
-      this.ParseSettingsSource(this.RootSettingsFilePath);
+      var rootImport = new ImportFrom(this.RootSettingsFilePath, this.RootSettingsFilePath, isRoot: true);
+      this.ParseSettingsSource(rootImport.GetAbsolutePath());
+      
+      // Добавляем корневой элемент последним.
+      this.rootImports.Add(rootImport);
     }
 
     /// <summary>
@@ -531,16 +527,16 @@ namespace ConfigSettings.Patch
       }
 
       var blockContentWithoutRoot = string.Concat(element.Nodes());
-      var blockContent = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
+      var blockContentWithRoot = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
 
       var block = this.TryGetBlock(name);
       if (block == null)
       {
-        this.blocks.Add(new BlockSetting(settingsFilePath, name, isBlockEnabled, blockContent, blockContentWithoutRoot, this.GetComments(element)));
+        this.blocks.Add(new BlockSetting(settingsFilePath, name, isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, this.GetComments(element)));
         return;
       }
       
-      block.Update(isBlockEnabled, blockContent, blockContentWithoutRoot, this.GetComments(element));
+      block.Update(isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, this.GetComments(element));
     }
 
     private void ParseMeta(string settingsFilePath, XElement element)
