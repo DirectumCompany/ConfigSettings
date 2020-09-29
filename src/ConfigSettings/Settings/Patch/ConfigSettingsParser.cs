@@ -512,8 +512,8 @@ namespace ConfigSettings.Patch
 
     private void ParseBlock(string settingsFilePath, XElement element)
     {
-      var name = element.Attribute("name")?.Value;
-      if (string.IsNullOrEmpty(name))
+      var blockName = element.Attribute("name")?.Value;
+      if (string.IsNullOrEmpty(blockName))
         return;
 
       var enabledAttribute = element.Attribute("enabled");
@@ -527,16 +527,7 @@ namespace ConfigSettings.Patch
       }
 
       var blockContentWithoutRoot = string.Concat(element.Nodes());
-      var blockContentWithRoot = !string.IsNullOrEmpty(blockContentWithoutRoot) ? element.ToString() : null;
-
-      var block = this.TryGetBlock(name);
-      if (block == null)
-      {
-        this.blocks.Add(new BlockSetting(settingsFilePath, name, isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, this.GetComments(element)));
-        return;
-      }
-      
-      block.Update(isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, this.GetComments(element));
+      this.AddOrUpdateBlock(settingsFilePath, blockName, isBlockEnabled, blockContentWithoutRoot, this.GetComments(element));
     }
 
     private void ParseMeta(string settingsFilePath, XElement element)
