@@ -331,9 +331,9 @@ namespace ConfigSettings.Tests
       var imports = parser.GetAllImportsExceptRoot();
 
       imports.Should().HaveCount(2);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path"));
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path2"));
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().EndWith(@"test\file\path");
+      imports[1].Should().EndWith(@"test\file\path2");
     }
 
     [Test]
@@ -341,17 +341,20 @@ namespace ConfigSettings.Tests
     {
       var import1 = this.CreateSettings("");
       var import2 = this.CreateSettings("");
-      var import3 = this.CreateSettings($@"<import from=""{import1}"" /><import from=""{Path.GetFileName(import2)}"" />");
-      var root = this.CreateSettings($@"<import from=""{import3}"" />");
+      var import3 = this.CreateSettings($@"
+<import from=""{import1}"" />
+<import from=""{Path.GetFileName(import2)}"" />");
+      var root = this.CreateSettings($@"
+<import from=""{import3}"" />");
       var parser = new ConfigSettingsParser(root);
 
       var imports = parser.GetAllImportsExceptRoot();
 
       imports.Should().HaveCount(3);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(import1);
-      imports.Should().Contain(import2);
-      imports.Should().Contain(import3);
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().Be(import1);
+      imports[1].Should().Be(import2);
+      imports[2].Should().Be(import3);
     }
 
     [Test]

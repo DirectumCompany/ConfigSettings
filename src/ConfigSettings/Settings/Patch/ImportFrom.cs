@@ -39,16 +39,11 @@ namespace ConfigSettings.Settings.Patch
     }
     
     /// <summary>
-    /// Обновить путь импорта.
+    /// Обновить импорт.
     /// </summary>
-    /// <param name="from"></param>
     /// <param name="comments"></param>
-    public void TryUpdate(string from, IReadOnlyList<string> comments = null)
+    public void Update(IReadOnlyList<string> comments = null)
     {
-      if (this.IsRoot)
-        return;
-      
-      this.From = from;
       this.Comments = comments;
     }
 

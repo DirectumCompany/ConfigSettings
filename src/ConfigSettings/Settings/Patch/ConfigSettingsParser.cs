@@ -41,7 +41,7 @@ namespace ConfigSettings.Patch
     /// Корневой файл настроек.
     /// </summary>
     public string RootSettingsFilePath { get; protected set; }
-
+    
     /// <summary>
     /// Признак, что есть настройка доступности/недоступности блоков.
     /// </summary>
@@ -309,23 +309,23 @@ namespace ConfigSettings.Patch
 
 
     /// <summary>
-    /// Усатновить import from.
+    /// Установить import from.
     /// </summary>
     /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="filePath">Путь к файлу.</param>
-    public ImportFrom AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
+    public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
       var importFrom = this.TryGetImportFrom(filePath);
       if (importFrom == null)
       {
         importFrom = new ImportFrom(settingsFilePath, filePath, false, comments);
+        ParseSettingsSource(importFrom.GetAbsolutePath());
         this.rootImports.Add(importFrom);
-        return importFrom;
+        return;
       }
       
-      // Избавится от путаницы с импортами.
-      importFrom.TryUpdate(filePath, comments);
-      return importFrom;
+      // Мы не можем изменить filePath, т.к. это ключ, по которому проверяется уникальность.
+      importFrom.Update(comments);
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ namespace ConfigSettings.Patch
     /// <returns>Переменная с импортом.</returns>
     public ImportFrom TryGetImportFrom(string filePath)
     {
-      return this.GetImportsFrom(filePath).FirstOrDefault();
+      return this.GetImportsFrom(filePath).LastOrDefault();
     }
 
     /// <summary>
@@ -403,7 +403,7 @@ namespace ConfigSettings.Patch
     /// <returns>Импорты файла.</returns>
     private IEnumerable<ImportFrom> GetImportsFrom(string filePath)
     {
-      return this.rootImports.Where(v => v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
+      return this.rootImports.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -437,7 +437,7 @@ namespace ConfigSettings.Patch
       try
       {
         var settings = XDocument.Load(settingsFilePath);
-        if (settings?.Root == null)
+        if (settings.Root == null)
           return;
 
         // Сначала обрабатываем import-ы, чтобы не зависеть от их местоположения в xml-ке.
@@ -511,8 +511,7 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(from))
         return;
 
-      var importFrom = this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
-      ParseSettingsSource(importFrom.GetAbsolutePath());
+      this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)
