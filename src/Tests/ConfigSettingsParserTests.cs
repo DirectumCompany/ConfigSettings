@@ -162,7 +162,7 @@ namespace ConfigSettings.Tests
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <TestTenant Name=""t1"" />
     <TestTenant Name=""t2"" />
   </block>
@@ -183,7 +183,7 @@ namespace ConfigSettings.Tests
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <test_custom_root custom_name=""t1"" />
     <test_custom_root custom_name=""t2"" />
   </block>
@@ -228,7 +228,7 @@ namespace ConfigSettings.Tests
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""tenantGroups"" enabled=""True"">
+  <block name=""tenantGroups"" enabled=""true"">
     <ArrayOfTestTenant>
       <TestTenant Name=""a1"" />
       <TestTenant Name=""a2"" />
@@ -258,7 +258,7 @@ namespace ConfigSettings.Tests
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""nestedTenantGroups"" enabled=""True"">
+  <block name=""nestedTenantGroups"" enabled=""true"">
     <TestNestedTenants>
       <Tenants>
         <TestTenant Name=""a1"" />
@@ -287,7 +287,7 @@ namespace ConfigSettings.Tests
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""TestPluginSettings"" enabled=""True"">
+  <block name=""TestPluginSettings"" enabled=""true"">
     <TestPlugin id=""id_value"" />
     <TestPlugin name=""name_value"" />
   </block>

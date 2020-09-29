@@ -256,7 +256,9 @@ namespace ConfigSettings.Patch
     /// <param name="blockContentWithoutRoot">Содержимое блока в виде строки.</param>
     public void AddOrUpdateBlock(string settingsFilePath, string blockName, bool? isBlockEnabled, string blockContentWithoutRoot, IReadOnlyList<string> comments = null)
     {
-      var blockContentWithRoot = $@"<block name=""{blockName}""{BlockEnabledXmlPart(isBlockEnabled)}>{blockContentWithoutRoot}</block>";
+      var blockContentWithRoot = !string.IsNullOrEmpty(blockContentWithoutRoot)
+        ? $@"<block name=""{blockName}""{BlockEnabledXmlPart(isBlockEnabled)}>{blockContentWithoutRoot}</block>"
+        : null;
 
       var block = this.TryGetBlock(blockName);
       if (block == null)
@@ -283,28 +285,6 @@ namespace ConfigSettings.Patch
       var blockContent = BlockParser.Serialize(block);
       this.AddOrUpdateBlock(settingsFilePath, blockName, isBlockEnabled, blockContent);
     }
-
-    /// <summary>
-    /// Установить признак доступности.
-    /// </summary>
-    /// <param name="blockName">Имя блока.</param>
-    /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="settingsFilePath">Источник настройки.</param>
-    public void SetBlockAccessibility(string settingsFilePath, string blockName, bool isBlockEnabled)
-    {
-      var blockContentWithRoot = $@"<block name=""{blockName}"" enabled=""{isBlockEnabled}"" ></block>";
-      
-      var block = this.TryGetBlock(blockName);
-      if (block == null)
-      {
-        block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot);
-        this.blocks.Add(block);
-        return;
-      }
-      
-      block.Update(isBlockEnabled, block.Content, block.ContentWithoutRoot, block.Comments);
-    }
-
 
     /// <summary>
     /// Установить import from.
