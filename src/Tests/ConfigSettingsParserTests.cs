@@ -328,7 +328,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
-      var imports = parser.GetAllImportsExceptRoot();
+      var imports = parser.GetAllImports();
 
       imports.Should().HaveCount(2);
       imports.All(Path.IsPathRooted).Should().BeTrue();
@@ -348,7 +348,7 @@ namespace ConfigSettings.Tests
 <import from=""{import3}"" />");
       var parser = new ConfigSettingsParser(root);
 
-      var imports = parser.GetAllImportsExceptRoot();
+      var imports = parser.GetAllImports();
 
       imports.Should().HaveCount(3);
       imports.All(Path.IsPathRooted).Should().BeTrue();
@@ -364,14 +364,14 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
-      var imports = parser.GetAllImportsExceptRoot();
+      var imports = parser.GetAllImports();
       imports.Should().HaveCount(2);
-      parser.TryRemoveImportFrom(@"test\file\path");
-      parser.TryRemoveImportFrom(@"test\file\path3");
-      parser.GetAllImportsExceptRoot().Should().HaveCount(1);
+      parser.RemoveImportFrom(@"test\file\path");
+      parser.RemoveImportFrom(@"test\file\path3");
+      parser.GetAllImports().Should().HaveCount(1);
       
-      parser.TryRemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
-      parser.GetAllImportsExceptRoot().Should().HaveCount(0);
+      parser.RemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
+      parser.GetAllImports().Should().HaveCount(0);
     }
 
     public string GetConfigSettings(string configPath)

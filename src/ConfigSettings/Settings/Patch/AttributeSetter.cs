@@ -6,7 +6,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Класс для установки значений атрибутов xml-элементов конфига.
   /// </summary>
-  public class AttributeSetter : BaseSetter
+  internal class AttributeSetter : BaseSetter
   {
     #region Поля и свойства
 

@@ -33,7 +33,7 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Импорты.
     /// </summary>
-    private readonly IList<ImportFrom> rootImports = new List<ImportFrom>();
+    private readonly IList<ImportFrom> importsFrom = new List<ImportFrom>();
 
     private bool isParsed;
 
@@ -43,16 +43,11 @@ namespace ConfigSettings.Patch
     public string RootSettingsFilePath { get; protected set; }
     
     /// <summary>
-    /// Признак, что есть настройка доступности/недоступности блоков.
-    /// </summary>
-    public bool HasEnabledOrDisabledBlocks { get { return this.blocks.Any(b => b.IsEnabled != null); } }
-
-    /// <summary>
     /// Признак, что есть настройка содержимого блоков.
     /// </summary>
     public bool HasContentBlocks { get { return this.blocks.Any(b => !string.IsNullOrEmpty(b.Content)); } }
 
-    private readonly List<CommentValue> comments = new List<CommentValue>();
+    private readonly List<CommentValue> commentsValues = new List<CommentValue>();
 
     #endregion
 
@@ -62,9 +57,9 @@ namespace ConfigSettings.Patch
     /// Получить список всех импортируемых конфигов, с учётом рекурсии.
     /// </summary>
     /// <returns>Список всех импортируемых конфигов. Все пути в полученном списке - абсолютные пути импортируемых файлов настроек.</returns>
-    public IReadOnlyList<string> GetAllImportsExceptRoot()
+    public IReadOnlyList<string> GetAllImports()
     {
-      return this.rootImports.Where(r => !r.IsRoot).Select(r => r.GetAbsolutePath()).ToList();
+      return this.importsFrom.Where(r => !r.IsRoot).Select(r => r.GetAbsolutePath()).ToList();
     }
 
     private bool? ComputeBlockAccessibility(string blockName)
@@ -81,7 +76,7 @@ namespace ConfigSettings.Patch
 
     private bool IsBlockAccessible(string blockName, bool accessibility)
     {
-      return this.TryGetBlock(blockName)?.IsEnabled == accessibility;
+      return this.GetBlock(blockName)?.IsEnabled == accessibility;
     }
 
     /// <summary>
@@ -111,12 +106,12 @@ namespace ConfigSettings.Patch
     /// <returns>Содержимым блока.</returns>
     public string GetBlockContent(string blockName)
     {
-      return this.TryGetBlock(blockName)?.Content;
+      return this.GetBlock(blockName)?.Content;
     }
 
     private string GetBlockContentWithoutRoot(string blockName)
     {
-      return this.TryGetBlock(blockName)?.ContentWithoutRoot;
+      return this.GetBlock(blockName)?.ContentWithoutRoot;
     }
 
     /// <summary>
@@ -158,7 +153,7 @@ namespace ConfigSettings.Patch
     /// <returns>True - если значение указано.</returns>
     public bool HasVariable(string variableName)
     {
-      return this.TryGetVariable(variableName) != null;
+      return this.GetVariable(variableName) != null;
     }  
     
     /// <summary>
@@ -166,7 +161,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
     /// <returns>Переменная или null.</returns>
-    public Variable TryGetVariable(string variableName)
+    public Variable GetVariable(string variableName)
     {
       return this.variables.LastOrDefault(variable => variable.Name == variableName);
     }
@@ -178,7 +173,7 @@ namespace ConfigSettings.Patch
     /// <returns>Знаение переменной.</returns>
     public string GetVariableValue(string variableName)
     {
-      return this.TryGetVariable(variableName)?.Value;
+      return this.GetVariable(variableName)?.Value;
     }
 
     /// <summary>
@@ -190,7 +185,7 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.TryGetVariable(variableName);
+      var newValue = this.GetVariable(variableName);
       if (newValue == null)
       {
         newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
@@ -207,7 +202,7 @@ namespace ConfigSettings.Patch
     /// <param name="variableName">Имя переменной.</param>
     public void RemoveVariable(string variableName)
     {
-      var variable = this.TryGetVariable(variableName);
+      var variable = this.GetVariable(variableName);
       if (variable != null)
         this.variables.Remove(variable);
     }
@@ -221,7 +216,7 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateMetaVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.TryGetVariable(variableName);
+      var newValue = this.GetVariable(variableName);
       if (newValue == null)
       {
         newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
@@ -237,12 +232,17 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="blockName">Имя блока.</param>
     /// <returns>Блок или null.</returns>
-    public BlockSetting TryGetBlock(string blockName)
+    public BlockSetting GetBlock(string blockName)
     {
       return this.blocks.LastOrDefault(b => b.Name == blockName);
     }
 
-    private string BlockEnabledXmlPart(bool? enabled)
+    /// <summary>
+    /// Xml часть с доступностью блока.
+    /// </summary>
+    /// <param name="enabled">Доступность блока.</param>
+    /// <returns>Строка в виде части xml.</returns>
+    private static string BlockEnabledXmlPart(bool? enabled)
     {
       return enabled == null ? string.Empty : $@" enabled=""{enabled.ToString().ToLower()}""";
     }
@@ -261,7 +261,7 @@ namespace ConfigSettings.Patch
         ? $@"<block name=""{blockName}""{BlockEnabledXmlPart(isBlockEnabled)}>{blockContentWithoutRoot}</block>"
         : null;
 
-      var block = this.TryGetBlock(blockName);
+      var block = this.GetBlock(blockName);
       if (block == null)
       {
         block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, comments);
@@ -295,12 +295,12 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
-      var importFrom = this.TryGetImportFrom(filePath);
+      var importFrom = this.GetImportFrom(filePath);
       if (importFrom == null)
       {
         importFrom = new ImportFrom(settingsFilePath, filePath, false, comments);
         ParseSettingsSource(importFrom.GetAbsolutePath());
-        this.rootImports.Add(importFrom);
+        this.importsFrom.Add(importFrom);
         return;
       }
       
@@ -325,7 +325,7 @@ namespace ConfigSettings.Patch
     /// <returns>True, если блок существует.</returns>
     public bool HasBlock(string blockName)
     {
-      return this.TryGetBlock(blockName) != null;
+      return this.GetBlock(blockName) != null;
     }
 
     /// <summary>
@@ -359,11 +359,11 @@ namespace ConfigSettings.Patch
     /// Удалить импорт файла.
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
-    public void TryRemoveImportFrom(string fileName)
+    public void RemoveImportFrom(string fileName)
     {
-      var importFromToDelete = this.TryGetImportFrom(fileName);
+      var importFromToDelete = this.GetImportFrom(fileName);
       if (importFromToDelete != null)
-        this.rootImports.Remove(importFromToDelete);
+        this.importsFrom.Remove(importFromToDelete);
     }
 
     /// <summary>
@@ -371,7 +371,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="filePath">Путь к файлу.</param>
     /// <returns>Переменная с импортом.</returns>
-    public ImportFrom TryGetImportFrom(string filePath)
+    public ImportFrom GetImportFrom(string filePath)
     {
       return this.GetImportsFromExceptRoot(filePath).LastOrDefault();
     }
@@ -383,7 +383,7 @@ namespace ConfigSettings.Patch
     /// <returns>Импорты файла.</returns>
     private IEnumerable<ImportFrom> GetImportsFromExceptRoot(string filePath)
     {
-      return this.rootImports.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
+      return this.importsFrom.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -402,7 +402,7 @@ namespace ConfigSettings.Patch
       this.ParseSettingsSource(rootImport.GetAbsolutePath());
       
       // Добавляем корневой элемент последним.
-      this.rootImports.Add(rootImport);
+      this.importsFrom.Add(rootImport);
     }
 
     /// <summary>
@@ -467,7 +467,7 @@ namespace ConfigSettings.Patch
         if (nextName == "import" || nextName == "meta" || nextName == "var" || nextName == "block")
           return;
       }
-      this.comments.Add(new CommentValue(element.Value, settingsFilePath));
+      this.commentsValues.Add(new CommentValue(element.Value, settingsFilePath));
     }
 
     /// <summary>
@@ -475,11 +475,11 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="element">Элемент, для которого нужно получить комменарий.</param>
     /// <returns>Строка с комменарием.</returns>
-    private List<string> GetComments(XNode element)
+    private static IReadOnlyList<string> GetComments(XNode element)
     {
       if (element.PreviousNode is XComment comment)
       {
-        var previousComments = GetComments(element.PreviousNode);
+        var previousComments = GetComments(element.PreviousNode).ToList();
         previousComments.Add(comment.Value);
         return previousComments;
       }
@@ -492,7 +492,7 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(from))
         return;
 
-      this.AddOrUpdateImortFrom(settingsFilePath, from, this.GetComments(element));
+      this.AddOrUpdateImortFrom(settingsFilePath, from, GetComments(element));
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)
@@ -512,7 +512,7 @@ namespace ConfigSettings.Patch
       }
 
       var blockContentWithoutRoot = string.Concat(element.Nodes());
-      this.AddOrUpdateBlock(settingsFilePath, blockName, isBlockEnabled, blockContentWithoutRoot, this.GetComments(element));
+      this.AddOrUpdateBlock(settingsFilePath, blockName, isBlockEnabled, blockContentWithoutRoot, GetComments(element));
     }
 
     private void ParseMeta(string settingsFilePath, XElement element)
@@ -522,7 +522,7 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(name))
         return;
 
-      this.AddOrUpdateMetaVariable(settingsFilePath, name, value, this.GetComments(element));
+      this.AddOrUpdateMetaVariable(settingsFilePath, name, value, GetComments(element));
     }
 
     private void ParseVar(string settingsFilePath, XElement element)
@@ -532,7 +532,7 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(name))
         return;
 
-      this.AddOrUpdateVariable(settingsFilePath, name, value, this.GetComments(element));
+      this.AddOrUpdateVariable(settingsFilePath, name, value, GetComments(element));
     }
 
     /// <summary>
@@ -540,7 +540,7 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="comments">Комментарии.</param>
     /// <param name="rootElement">Корневой элемент.</param>
-    private void SaveComments(IReadOnlyList<string> comments, XElement rootElement) 
+    private static void SaveComments(IReadOnlyList<string> comments, XElement rootElement) 
     {
       if (comments != null)
       {
@@ -556,32 +556,33 @@ namespace ConfigSettings.Patch
     /// <exception cref="InvalidOperationException"></exception>
     public void Save()
     {
-      if (!this.rootImports.Any())
-        throw new InvalidOperationException("Cannot save. rootImports is empty.");
-
-      foreach (var rootImport in this.rootImports)
+      if (!this.importsFrom.Any())
+        throw new InvalidOperationException($"Cannot save. {nameof(importsFrom)} is empty.");
+      
+      // Цикл по всем импортам, включая корневой.
+      foreach (var importFrom in this.importsFrom)
       {
-        var filePath = rootImport.GetAbsolutePath();
+        var filePath = importFrom.GetAbsolutePath();
         var rootElement = new XElement("settings");
 
-        var rootImportsWithEqualPath = this.rootImports.Where(v => v.FilePath.Equals(filePath) &&
-                                                                   !v.From.Equals(rootImport.From, StringComparison.OrdinalIgnoreCase));
+        var rootImportsWithEqualPath = this.importsFrom.Where(v => v.FilePath.Equals(filePath) &&
+                                                                   !v.From.Equals(importFrom.From, StringComparison.OrdinalIgnoreCase));
         foreach (var kvp in rootImportsWithEqualPath)
         {
-          this.SaveComments(kvp.Comments, rootElement);
+          SaveComments(kvp.Comments, rootElement);
           rootElement.Add(new XElement("import", new XAttribute("from", kvp.From)));
         }
 
         var metaVariablesWithEqualPath = this.metaVariables.Where(v => v.FilePath.Equals(filePath));
         foreach (var kvp in metaVariablesWithEqualPath)
         {
-          this.SaveComments(kvp.Comments, rootElement);
+          SaveComments(kvp.Comments, rootElement);
           rootElement.Add(new XElement("meta", new XAttribute("name", kvp.Name), new XAttribute("value", kvp.Value)));
         }
         var variablesWithEqualPath = this.variables.Where(v => v.FilePath.Equals(filePath) && !this.HasBlock(v.Name));
         foreach (var kvp in variablesWithEqualPath)
         {
-          this.SaveComments(kvp.Comments, rootElement);
+          SaveComments(kvp.Comments, rootElement);
           rootElement.Add(
             new XElement("var", new XAttribute("name", kvp.Name), new XAttribute("value", kvp.Value)));
         }
@@ -594,11 +595,11 @@ namespace ConfigSettings.Patch
             : kvp.Content;
           var blockContent = XDocument.Parse(blockContentWithRoot);
 
-          this.SaveComments(kvp.Comments, rootElement);
+          SaveComments(kvp.Comments, rootElement);
           rootElement.Add(blockContent.Root);
         }
 
-        var commentsWithEqualPath = this.comments.Where(v => v.FilePath.Equals(filePath));
+        var commentsWithEqualPath = this.commentsValues.Where(v => v.FilePath.Equals(filePath));
         foreach (var comment in commentsWithEqualPath)
         {
           if (!string.IsNullOrEmpty(comment.Value))
@@ -622,7 +623,7 @@ namespace ConfigSettings.Patch
       this.variables.Clear();
       this.metaVariables.Clear();
       this.blocks.Clear();
-      this.rootImports.Clear();
+      this.importsFrom.Clear();
       this.isParsed = false;
     }
 

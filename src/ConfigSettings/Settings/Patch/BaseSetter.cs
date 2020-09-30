@@ -5,7 +5,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Базовый класс для установки значений элементов xml-конфига.
   /// </summary>
-  public abstract class BaseSetter
+  internal abstract class BaseSetter
   {
     private readonly ExpressionEvaluator expressionEvaluator;
 

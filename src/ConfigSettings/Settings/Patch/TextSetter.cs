@@ -6,7 +6,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Класс для установки значения текста xml-элемента конфига.
   /// </summary>
-  public class TextSetter : BaseSetter
+  internal class TextSetter : BaseSetter
   {
     /// <summary>
     /// Применить настройки к элементу.

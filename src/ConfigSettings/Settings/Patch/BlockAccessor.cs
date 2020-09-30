@@ -9,7 +9,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Класс для управления доступностью блоков xml-конфига.
   /// </summary>
-  public class BlockAccessor
+  internal class BlockAccessor
   {
     #region Поля и свойства
 

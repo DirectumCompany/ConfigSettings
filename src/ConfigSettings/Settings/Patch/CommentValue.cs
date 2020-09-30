@@ -3,7 +3,7 @@
   /// <summary>
   /// Переменная комментария.
   /// </summary>
-  public class CommentValue
+  internal class CommentValue
   {
     /// <summary>
     /// Значение настройки.
