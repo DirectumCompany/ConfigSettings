@@ -23,7 +23,6 @@ namespace ConfigSettingsTests
       Assert.AreEqual(assemblyProductInfo.CompanyName, companyName);
       Assert.AreEqual(assemblyProductInfo.ProductName, productName);
       Assert.AreEqual(assemblyProductInfo.NormalizedProductName, this.NormalizeProductName(productName));
-      Assert.IsTrue(!assemblyProductInfo.NormalizedProductName.Contains(" "));
     }
 
     private string NormalizeProductName(string productName)
