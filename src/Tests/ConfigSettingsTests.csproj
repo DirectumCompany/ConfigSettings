@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Product>Test Product Name</Product>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\AssemblyInfo.cs" />

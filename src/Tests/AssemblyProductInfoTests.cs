@@ -17,17 +17,13 @@ namespace ConfigSettingsTests
     public void TestAssemblyProductInfo()
     {
       var assembly = Assembly.GetExecutingAssembly();
-      var companyName = ((AssemblyCompanyAttribute)assembly.GetCustomAttributes(typeof(AssemblyCompanyAttribute)).Single()).Company;
-      var productName = ((AssemblyProductAttribute)assembly.GetCustomAttributes(typeof(AssemblyProductAttribute)).Single()).Product;
+      var companyName = "ConfigSettingsTests";
+      var productName = "Test Product Name";
+      var normalizedProductName = "TestProductName";
       var assemblyProductInfo = new AssemblyProductInfo(assembly);
       Assert.AreEqual(assemblyProductInfo.CompanyName, companyName);
       Assert.AreEqual(assemblyProductInfo.ProductName, productName);
-      Assert.AreEqual(assemblyProductInfo.NormalizedProductName, this.NormalizeProductName(productName));
-    }
-
-    private string NormalizeProductName(string productName)
-    {
-      return productName.Replace(" ", string.Empty);
+      Assert.AreEqual(assemblyProductInfo.NormalizedProductName, normalizedProductName);
     }
   }
 }
