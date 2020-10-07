@@ -150,30 +150,48 @@ namespace ConfigSettings.Patch
     /// Проверить, что для переменной в настройках указано значение.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
+    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
+    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
     /// <returns>True - если значение указано.</returns>
-    public bool HasVariable(string variableName)
+    public bool HasVariable(string variableName, string configPath = null)
     {
-      return this.GetVariable(variableName) != null;
-    }  
-    
+      return this.GetVariable(variableName, configPath) != null;
+    }
+
     /// <summary>
     /// Получить переменную.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
+    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
+    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
     /// <returns>Переменная или null.</returns>
-    public Variable GetVariable(string variableName)
+    public Variable GetVariable(string variableName, string configPath = null)
     {
-      return this.variables.LastOrDefault(variable => variable.Name == variableName);
+      return this.variables.LastOrDefault(variable => variable.Name == variableName
+        && (configPath == null || variable.FilePath == configPath));
     }
+
+    /// <summary>
+    /// Получить переменные с заданным именем со всех импортируемых конфигов.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Список переменных.</returns>
+    public IEnumerable<Variable> GetAllVariables(string variableName)
+    {
+      return this.variables.Where(variable => variable.Name == variableName);
+    }
+
 
     /// <summary>
     /// Получить значение переменной, указанное в настройке.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
-    /// <returns>Знаение переменной.</returns>
-    public string GetVariableValue(string variableName)
+    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
+    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
+    /// <returns>Значение переменной.</returns>
+    public string GetVariableValue(string variableName, string configPath = null)
     {
-      return this.GetVariable(variableName)?.Value;
+      return this.GetVariable(variableName, configPath)?.Value;
     }
 
     /// <summary>
@@ -185,7 +203,7 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.GetVariable(variableName);
+      var newValue = this.GetVariable(variableName, settingsFilePath);
       if (newValue == null)
       {
         newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
@@ -202,8 +220,8 @@ namespace ConfigSettings.Patch
     /// <param name="variableName">Имя переменной.</param>
     public void RemoveVariable(string variableName)
     {
-      var variable = this.GetVariable(variableName);
-      if (variable != null)
+      var variables = this.GetAllVariables(variableName);
+      foreach(var variable in variables)
         this.variables.Remove(variable);
     }
 
