@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ConfigSettings.Utils;
 using FluentAssertions;
 using NUnit.Framework;
 using TestStack.BDDfy;
-using ConfigSettings.Internal;
 
 namespace ConfigSettings.Tests
 {
@@ -53,18 +53,27 @@ namespace ConfigSettings.Tests
     [Test]
     public void ApplyLogSettings()
     {
-      this.When(_ => _.ApplySettingsToLogСonfig())
+      var currentConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "source_log.config");
+      this.When(_ => _.ApplySettingsToLogСonfig(currentConfigPath))
         .Then(_ => _.ConfigShouldContainsFullPath())
-        .And(_ => _.ConfigFullPathShouldNotContainsAppdata())
+        .And(_ => _.ConfigFullPathShouldNotContainsAppdata(currentConfigPath))
         .BDDfy();
     }
 
     [Test]
     public void ApplyConfigSettingsAppDataPath()
     {
-      this.When(_ => _.ApplySettingsToLogСonfigWithAppDataPath())
-        .Then(_ => _.ConfigFullPathShouldContainsAppdata())
+      var currentConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "source_log.config");
+      this.When(_ => _.ApplySettingsToLogСonfigWithAppDataPath(currentConfigPath))
+        .Then(_ => _.ConfigFullPathShouldContainsAppdata(currentConfigPath))
         .BDDfy();
+    }
+
+    [Test]
+    public void ApplyConfigSettingsAppDataPathWithoutResolveFunc()
+    {
+      var currentConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "source_log.config");
+      Assert.Throws<ArgumentNullException>(() => ApplySettingsToLogСonfigWithAppDataPathWithoutResolvePathFunc(currentConfigPath));
     }
 
     private void ConfigShouldContainsFullPath()
@@ -74,14 +83,14 @@ namespace ConfigSettings.Tests
       File.ReadAllText(this.liveConfigPath).Contains(existingPathPart).Should().BeTrue();
     }
 
-    private void ConfigFullPathShouldContainsAppdata()
+    private void ConfigFullPathShouldContainsAppdata(string currentConfigPath)
     {
-      this.liveConfigPath.Contains(SpecialFolders.ProductUserApplicationData("Configs")).Should().BeTrue();
+      this.liveConfigPath.Contains(ResolveForcedAppDataPath(currentConfigPath)).Should().BeTrue();
     }
 
-    private void ConfigFullPathShouldNotContainsAppdata()
+    private void ConfigFullPathShouldNotContainsAppdata(string currentConfigPath)
     {
-      this.liveConfigPath.Contains(SpecialFolders.ProductUserApplicationData("Configs")).Should().BeFalse();
+      this.liveConfigPath.Contains(ResolveForcedAppDataPath(currentConfigPath)).Should().BeFalse();
     }
 
 
@@ -89,7 +98,7 @@ namespace ConfigSettings.Tests
     {
       var fn = Guid.NewGuid().ToString();
       ChangeConfig.FindFirstPathByMask(this.tempPath, fn).Should().BeNull();
-      File.WriteAllText(Path.Combine(this.tempPath, "prefix_"+fn), "some content");
+      File.WriteAllText(Path.Combine(this.tempPath, "prefix_" + fn), "some content");
       ChangeConfig.FindFirstPathByMask(this.tempPath, fn).Should().EndWith(fn);
     }
 
@@ -140,14 +149,28 @@ namespace ConfigSettings.Tests
       diff.Should().BeEmpty();
     }
 
-    private void ApplySettingsToLogСonfig()
+    private void ApplySettingsToLogСonfig(string currentConfigPath)
     {
-      this.liveConfigPath = ChangeConfig.Execute(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "source_log.config"), Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "settings.xml"));
+      this.liveConfigPath = ChangeConfig.Execute(currentConfigPath, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "settings.xml"), ResolveForcedAppDataPath);
     }
 
-    private void ApplySettingsToLogСonfigWithAppDataPath()
+    private void ApplySettingsToLogСonfigWithAppDataPath(string currentConfigPath)
     {
-      this.liveConfigPath = ChangeConfig.Execute(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "source_log.config"), Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "settings_with_appdata_path.xml"));
+      this.liveConfigPath = ChangeConfig.Execute(currentConfigPath, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "settings_with_appdata_path.xml"), ResolveForcedAppDataPath);
+    }
+
+    private void ApplySettingsToLogСonfigWithAppDataPathWithoutResolvePathFunc(string currentConfigPath)
+    {
+      this.liveConfigPath = ChangeConfig.Execute(currentConfigPath, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChangeConfig", "Etalon", "settings_with_appdata_path.xml"));
+    }
+
+    private static string ResolveForcedAppDataPath(string currentConfigPath)
+    {
+      return Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ConfigSettings",
+        "Configs",
+        Path.GetDirectoryName(currentConfigPath).GetMD5Hash().Substring(0, 8));
     }
   }
 }

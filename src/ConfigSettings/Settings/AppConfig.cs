@@ -35,7 +35,17 @@ namespace ConfigSettings
     /// <returns>Экземпляр класса. Также создаёт новый конфиг согласно правилам.</returns>
     public static AppConfig Change()
     {
-      var liveConfigPath = ChangeConfig.Execute(AppConfigFilePath);
+      return Change(null);
+    }
+
+    /// <summary>
+    /// Сменить имя.
+    /// </summary>
+    /// <param name="resolveForcedAppDataPath">Функция разрешения пути до папки в appdata, когда флаг forceReturnAppDataPath включен.</param>
+    /// <returns>Экземпляр класса. Также создаёт новый конфиг согласно правилам.</returns>
+    public static AppConfig Change(Func<string, string> resolveForcedAppDataPath)
+    {
+      var liveConfigPath = ChangeConfig.Execute(AppConfigFilePath, resolveForcedAppDataPath);
       return new ChangeAppConfig(liveConfigPath);
     }
 
