@@ -56,7 +56,7 @@ namespace ConfigSettings.Tests
     private readonly string tempPath = TestEnvironment.CreateRandomPath("ConfigSettingsParserTests");
 
     private string TempConfigFilePath => Path.Combine(this.tempPath, TestContext.CurrentContext.Test.MethodName + ".xml");
-
+    
     [Test]
     public void WhenSaveVariablesInSingleFile()
     {
@@ -103,11 +103,14 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveImportFromInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
+      var tempPathWithUnixistedSubfolders = Path.Combine(TestEnvironment.CreateRandomPath("ConfigSettingsParserTests"),
+        "SubFolder",
+        $"{nameof(this.WhenSaveImportFromInSingleFile)}.xmnl"); 
+      var parser = new ConfigSettingsParser(tempPathWithUnixistedSubfolders);
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.Save();
 
-      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(tempPathWithUnixistedSubfolders).Should()
         .Be(@"
   <import from=""test\file\path"" />
 ");

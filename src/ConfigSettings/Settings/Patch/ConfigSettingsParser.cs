@@ -592,8 +592,6 @@ namespace ConfigSettings.Patch
       foreach (var importFrom in this.importsFrom)
       {
         var filePath = importFrom.GetAbsolutePath();
-        if (!importFrom.IsRoot && !File.Exists(filePath))
-          continue;
         
         var rootElement = new XElement("settings");
 
@@ -637,7 +635,11 @@ namespace ConfigSettings.Patch
           if (!string.IsNullOrEmpty(comment.Value))
             rootElement.Add(new XComment(comment.Value));
         }
-
+        
+        if (!rootElement.HasElements && !File.Exists(filePath))
+          continue;
+        
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
         var config = new XDocument();
         config.Add(rootElement);
         config.Save(filePath);

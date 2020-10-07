@@ -1,3 +1,4 @@
+using System.IO;
 using ConfigSettings.Patch;
 using ConfigSettings.Tests;
 using FluentAssertions;
@@ -104,6 +105,21 @@ namespace ConfigSettingsTests
       
       TestTools.GetConfigSettings(rootSettings).Should().Be($@"
   <import from=""{baseSettings}"" />
+  <var name=""n1"" value=""v1"" />
+");
+    }
+
+    [Test]
+    public void AddBaseConfigWithVariable()
+    {
+      var rootPath = Path.Combine(this.tempPath, nameof(this.AddBaseConfigWithVariable), "rootConfig.xml");
+      var basePath = Path.Combine(this.tempPath, nameof(this.AddBaseConfigWithVariable), "baseConfig.xml");
+      var parser = new ConfigSettingsParser(rootPath);
+      parser.AddOrUpdateImortFrom(rootPath, basePath);
+      parser.AddOrUpdateVariable(basePath, "n1", "v1");
+      parser.Save();
+
+      TestTools.GetConfigSettings(basePath).Should().Be(@"
   <var name=""n1"" value=""v1"" />
 ");
     }
