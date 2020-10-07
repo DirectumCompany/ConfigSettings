@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using ConfigSettings.Utils;
-using ConfigSettings.Internal;
 using ConfigSettings.Patch;
+using ConfigSettings.Utils;
 
 namespace ConfigSettings
 {
@@ -158,7 +157,7 @@ namespace ConfigSettings
     /// <returns>Путь к реальному (live) файлу-конфигу.</returns>
     public static string GetLiveConfigFilePath(string currentConfigPath)
     {
-      return GetLiveConfigFilePath(currentConfigPath, false);
+      return GetLiveConfigFilePath(currentConfigPath, false, null);
     }
 
     /// <summary>
@@ -166,8 +165,9 @@ namespace ConfigSettings
     /// </summary>
     /// <param name="currentConfigPath">Путь к оригинальному файлу-конфигу.</param>
     /// <param name="forceReturnAppDataPath">Принудительно возвращать путь к appdata.</param>
+    /// <param name="resolveForcedAppDataPath">Функция разрешения пути до папки в appdata, когда флаг forceReturnAppDataPath включен.</param>
     /// <returns>Путь к реальному (live) файлу-конфигу.</returns>
-    private static string GetLiveConfigFilePath(string currentConfigPath, bool forceReturnAppDataPath)
+    private static string GetLiveConfigFilePath(string currentConfigPath, bool forceReturnAppDataPath, Func<string, string> resolveForcedAppDataPath)
     {
       var nameWithoutExt = Path.GetFileNameWithoutExtension(currentConfigPath);
       var liveConfigName = nameWithoutExt + ".live" + Path.GetExtension(currentConfigPath);
@@ -177,9 +177,14 @@ namespace ConfigSettings
         if (!IsFileLocked(liveConfigBesideCurrent))
           return liveConfigBesideCurrent;
       }
-      var appDataPath = Path.Combine(SpecialFolders.ProductUserApplicationData("Configs",
-          Path.GetDirectoryName(currentConfigPath).GetMD5Hash().Substring(0, 8)), liveConfigName);
-      return appDataPath;
+
+      if (resolveForcedAppDataPath == null)
+        throw new ArgumentNullException(nameof(resolveForcedAppDataPath), "Remove FORCE_USE_APPDATA_PATH meta tag or specify resolveForcedAppDataPath function on ChangeConfig.Execute");
+
+      var appDataPath = resolveForcedAppDataPath(currentConfigPath);
+      if (!Directory.Exists(appDataPath))
+        Directory.CreateDirectory(appDataPath);
+      return Path.Combine(appDataPath, liveConfigName);
     }
 
     /// <summary>
@@ -189,7 +194,18 @@ namespace ConfigSettings
     /// <returns>Путь к измененному конфигу.</returns>
     public static string Execute(string currentConfigPath)
     {
-      return Execute(currentConfigPath, null);
+      return Execute(currentConfigPath, null, null);
+    }
+
+    /// <summary>
+    /// Выполнить изменение конфига на основе правил.
+    /// </summary>
+    /// <param name="currentConfigPath">Путь к текущем конфигу.</param>
+    /// <param name="resolveForcedAppDataPath">Функция разрешения пути до папки в appdata, когда указан мета тег FORCE_USE_APPDATA_PATH.</param>
+    /// <returns>Путь к измененному конфигу.</returns>
+    public static string Execute(string currentConfigPath, Func<string, string> resolveForcedAppDataPath)
+    {
+      return Execute(currentConfigPath, null, resolveForcedAppDataPath);
     }
 
     /// <summary>
@@ -199,6 +215,18 @@ namespace ConfigSettings
     /// <param name="settingsFileName">Имя файла с настройками конфига.</param>
     /// <returns>Путь к измененному конфигу.</returns>
     public static string Execute(string currentConfigPath, string settingsFileName)
+    {
+      return Execute(currentConfigPath, settingsFileName, null);
+    }
+
+    /// <summary>
+    /// Выполнить изменение конфига на основе правил.
+    /// </summary>
+    /// <param name="currentConfigPath">Путь к текущем конфигу.</param>
+    /// <param name="settingsFileName">Имя файла с настройками конфига.</param>
+    /// <param name="resolveForcedAppDataPath">Функция разрешения пути до папки в appdata, когда флаг forceReturnAppDataPath включен.</param>
+    /// <returns>Путь к измененному конфигу.</returns>
+    public static string Execute(string currentConfigPath, string settingsFileName, Func<string, string> resolveForcedAppDataPath)
     {
       lock (lockInstance)
       {
@@ -212,7 +240,7 @@ namespace ConfigSettings
         var liveConfigPath = parser.HasMetaVariable(ForceUseAppDataPathMetaVariable) &&
                                 bool.TryParse(parser.GetMetaVariableValue(ForceUseAppDataPathMetaVariable),
                                   out forceUseAppDataPath)
-          ? GetLiveConfigFilePath(currentConfigPath, forceUseAppDataPath)
+          ? GetLiveConfigFilePath(currentConfigPath, forceUseAppDataPath, resolveForcedAppDataPath)
           : GetLiveConfigFilePath(currentConfigPath);
         if (HasGeneratedBlock(config) && File.Exists(liveConfigPath))
           ReplaceConfigWithoutGeneratedBlocks(config, liveConfigPath);
