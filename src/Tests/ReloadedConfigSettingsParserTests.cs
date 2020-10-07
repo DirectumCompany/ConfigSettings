@@ -22,7 +22,7 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath();
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
 
       WriteConfigFileContent1(fileName);
 
@@ -38,7 +38,7 @@ namespace ConfigSettings.Tests
       var fileName = this.GenerateConfigPath($"subfolder_{Guid.NewGuid()}");
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
 
       var directory = Path.GetDirectoryName(fileName);
       Directory.CreateDirectory(directory);
@@ -61,7 +61,7 @@ namespace ConfigSettings.Tests
 
       File.Delete(fileName);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
     }
 
     [Test]
@@ -79,7 +79,7 @@ namespace ConfigSettings.Tests
 
       Directory.Delete(directory, true);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
     }
 
     [Test]
@@ -97,7 +97,7 @@ namespace ConfigSettings.Tests
 
       Directory.Delete(directory, true);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
 
       Directory.CreateDirectory(directory);
       WriteConfigFileContent1(fileName);
@@ -121,7 +121,7 @@ namespace ConfigSettings.Tests
       File.Delete(fileName1);
       File.Move(fileName2, fileName1);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
 
@@ -140,7 +140,7 @@ namespace ConfigSettings.Tests
       reloaded.Should().Be(0);
 
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
 
@@ -166,8 +166,8 @@ namespace ConfigSettings.Tests
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
-      parser.HasVariable("testVariableName2").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName2").Should().Be(false);
       parser.GetVariableValue("testVariableName3").Should().Be("testVariableValue3");
     }
 
@@ -184,13 +184,13 @@ namespace ConfigSettings.Tests
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
-      parser.HasVariable("testVariableName2").Should().Be(false);
+      parser.HasVariable(null, "testVariableName2").Should().Be(false);
 
       WriteConfigFileContent2(importFileName);
 
       reloaded.Should().Be(0);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
 
@@ -205,7 +205,7 @@ namespace ConfigSettings.Tests
 
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
 
       WriteConfigFileContent1(importFileName);
 
@@ -222,7 +222,7 @@ namespace ConfigSettings.Tests
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
 
       reloaded.Should().Be(0);
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
 
       var importFileName = this.GenerateConfigPath();
       WriteConfigFileContent1(importFileName);
@@ -248,12 +248,12 @@ namespace ConfigSettings.Tests
       WriteConfigFileContent1(fileName);
       var parser = new ReloadedConfigSettingsParser(fileName, () => reloaded++, null, reloadedTime);
       reloaded.Should().Be(0);
-      parser.HasVariable("testVariableName2").Should().Be(false);
+      parser.HasVariable(null, "testVariableName2").Should().Be(false);
       parser.GetVariableValue("testVariableName").Should().Be("testVariableValue");
 
       WriteConfigFileContent2(fileName);
       Assert.That(() => reloaded, Is.EqualTo(1).After((int)waitForReloadedTime.TotalMilliseconds).PollEvery(10));
-      parser.HasVariable("testVariableName").Should().Be(false);
+      parser.HasVariable(null, "testVariableName").Should().Be(false);
       parser.GetVariableValue("testVariableName2").Should().Be("testVariableValue2");
     }
 

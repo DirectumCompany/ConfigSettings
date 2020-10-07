@@ -74,7 +74,7 @@ namespace ConfigSettingsTests
 <var name=""n1"" value=""v1"" />
 ");
       var parser = new ConfigSettingsParser(rootSettings);
-      parser.RemoveVariable("n1");
+      parser.RemoveVariable(null, "n1");
       parser.Save();
       
       TestTools.GetConfigSettings(baseSettings).Should().Be(@"
@@ -98,7 +98,7 @@ namespace ConfigSettingsTests
 <var name=""n1"" value=""v1"" />
 ");
       var parser = new ConfigSettingsParser(rootSettings);
-      parser.RemoveVariable("n1", baseSettings);
+      parser.RemoveVariable(baseSettings, "n1");
       parser.Save();
       
       TestTools.GetConfigSettings(baseSettings).Should().Be(@""); 

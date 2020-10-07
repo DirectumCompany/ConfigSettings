@@ -47,7 +47,7 @@ namespace ConfigSettings
     /// <returns>Настройка.</returns>
     public virtual T Get<T>(string name, Func<T> getDefaultValue)
     {
-      if (!this.configSettingsParser.HasVariable(name))
+      if (!this.configSettingsParser.HasVariable(null, name))
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);

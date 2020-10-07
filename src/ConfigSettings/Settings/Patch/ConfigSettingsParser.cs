@@ -76,7 +76,7 @@ namespace ConfigSettings.Patch
 
     private bool IsBlockAccessible(string blockName, bool accessibility)
     {
-      return this.GetBlock(blockName)?.IsEnabled == accessibility;
+      return this.GetBlock(null, blockName)?.IsEnabled == accessibility;
     }
 
     /// <summary>
@@ -106,12 +106,12 @@ namespace ConfigSettings.Patch
     /// <returns>Содержимым блока.</returns>
     public string GetBlockContent(string blockName)
     {
-      return this.GetBlock(blockName)?.Content;
+      return this.GetBlock(null, blockName)?.Content;
     }
 
     private string GetBlockContentWithoutRoot(string blockName)
     {
-      return this.GetBlock(blockName)?.ContentWithoutRoot;
+      return this.GetBlock(null, blockName)?.ContentWithoutRoot;
     }
 
     /// <summary>
@@ -149,26 +149,24 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Проверить, что для переменной в настройках указано значение.
     /// </summary>
+    /// <param name="settingsPath">Путь до файла с настройками</param>
     /// <param name="variableName">Имя переменной.</param>
-    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
-    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
     /// <returns>True - если значение указано.</returns>
-    public bool HasVariable(string variableName, string configPath = null)
+    public bool HasVariable(string settingsPath, string variableName)
     {
-      return this.GetVariable(variableName, configPath) != null;
+      return this.GetVariable(settingsPath, variableName) != null;
     }
 
     /// <summary>
     /// Получить переменную.
     /// </summary>
+    /// <param name="settingsPath">Путь к файлу, в котором надо искать переменную.</param>
     /// <param name="variableName">Имя переменной.</param>
-    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
-    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
     /// <returns>Переменная или null.</returns>
-    public Variable GetVariable(string variableName, string configPath = null)
+    public Variable GetVariable(string settingsPath, string variableName)
     {
       return this.variables.LastOrDefault(variable => variable.Name == variableName
-        && (configPath == null || variable.FilePath == configPath));
+        && (settingsPath == null || variable.FilePath == settingsPath));
     }
 
     /// <summary>
@@ -186,12 +184,10 @@ namespace ConfigSettings.Patch
     /// Получить значение переменной, указанное в настройке.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
-    /// <param name="configPath">Путь к файлу, в котором надо искать переменную. 
-    /// Если не указано, то поиск будет вестись по всем импортируемым конфигам.</param>
     /// <returns>Значение переменной.</returns>
-    public string GetVariableValue(string variableName, string configPath = null)
+    public string GetVariableValue(string variableName)
     {
-      return this.GetVariable(variableName, configPath)?.Value;
+      return this.GetVariable(null, variableName)?.Value;
     }
 
     /// <summary>
@@ -203,7 +199,7 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.GetVariable(variableName, settingsFilePath);
+      var newValue = this.GetVariable(settingsFilePath, variableName);
       if (newValue == null)
       {
         newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
@@ -227,11 +223,11 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Удалить переменную, если она есть.
     /// </summary>
+    /// <param name="settingsPath">Путь до конфига.</param>
     /// <param name="variableName">Имя переменной.</param>
-    /// <param name="configPath">Путь до конфига.</param>
-    public void RemoveVariable(string variableName, string configPath = null)
+    public void RemoveVariable(string settingsPath, string variableName)
     {
-      var variable = this.GetVariable(variableName, configPath);
+      var variable = this.GetVariable(settingsPath, variableName);
       if (variable != null)
         this.variables.Remove(variable);
     }
@@ -245,7 +241,7 @@ namespace ConfigSettings.Patch
     /// <param name="comments">Комментарии.</param>
     public void AddOrUpdateMetaVariable(string settingsFilePath, string variableName, string variableValue = null, IReadOnlyList<string> comments = null)
     {
-      var newValue = this.GetVariable(variableName);
+      var newValue = this.GetVariable(settingsFilePath, variableName);
       if (newValue == null)
       {
         newValue = new Variable(settingsFilePath, variableName, variableValue, comments);
@@ -259,11 +255,13 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Получить блок..
     /// </summary>
+    /// <param name="settingsPath">Путь до файла с настройками</param>
     /// <param name="blockName">Имя блока.</param>
     /// <returns>Блок или null.</returns>
-    public BlockSetting GetBlock(string blockName)
+    public BlockSetting GetBlock(string settingsPath, string blockName)
     {
-      return this.blocks.LastOrDefault(b => b.Name == blockName);
+      return this.blocks.LastOrDefault(b => b.Name == blockName 
+                                            && (settingsPath == null || b.FilePath == settingsPath));
     }
 
     /// <summary>
@@ -290,7 +288,7 @@ namespace ConfigSettings.Patch
         ? $@"<block name=""{blockName}""{BlockEnabledXmlPart(isBlockEnabled)}>{blockContentWithoutRoot}</block>"
         : null;
 
-      var block = this.GetBlock(blockName);
+      var block = this.GetBlock(settingsFilePath, blockName);
       if (block == null)
       {
         block = new BlockSetting(settingsFilePath, blockName, isBlockEnabled, blockContentWithRoot, blockContentWithoutRoot, comments);
@@ -350,11 +348,12 @@ namespace ConfigSettings.Patch
     /// <summary>
     /// Проверить наличие блока.
     /// </summary>
+    /// <param name="settingsFilePath">Путь до файла с настройками</param>
     /// <param name="blockName">Имя блока.</param>
     /// <returns>True, если блок существует.</returns>
-    public bool HasBlock(string blockName)
+    public bool HasBlock(string settingsFilePath, string blockName)
     {
-      return this.GetBlock(blockName) != null;
+      return this.GetBlock(settingsFilePath, blockName) != null;
     }
 
     /// <summary>
@@ -609,7 +608,7 @@ namespace ConfigSettings.Patch
           SaveComments(kvp.Comments, rootElement);
           rootElement.Add(new XElement("meta", new XAttribute("name", kvp.Name), new XAttribute("value", kvp.Value)));
         }
-        var variablesWithEqualPath = this.variables.Where(v => v.FilePath.Equals(filePath) && !this.HasBlock(v.Name));
+        var variablesWithEqualPath = this.variables.Where(v => v.FilePath.Equals(filePath));
         foreach (var kvp in variablesWithEqualPath)
         {
           SaveComments(kvp.Comments, rootElement);
