@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using ConfigSettings.Utils;
 
 namespace ConfigSettings.Internal
 {
@@ -10,43 +10,12 @@ namespace ConfigSettings.Internal
   /// </summary>
   public static class SpecialFolders
   {
-    #region Вложенные типы
-
-    /// <summary>
-    /// Информация о продукте.
-    /// </summary>
-    private class ProductInfo
-    {
-      /// <summary>
-      /// Имя компании.
-      /// </summary>
-      public string CompanyName { get; }
-
-      /// <summary>
-      /// Имя продукта.
-      /// </summary>
-      public string ProductName { get; }
-
-      /// <summary>
-      /// Конструктор по умолчанию.
-      /// </summary>
-      /// <param name="assemblyWithInfo">Сборка содержащая информацию о продукте.</param>
-      public ProductInfo(Assembly assemblyWithInfo)
-      {
-        var customAttributesData = assemblyWithInfo.GetCustomAttributesData();
-        this.CompanyName = (string)customAttributesData.Single(ca => ca.AttributeType == typeof(AssemblyCompanyAttribute)).ConstructorArguments.Single().Value;
-        this.ProductName = (string)customAttributesData.Single(ca => ca.AttributeType == typeof(AssemblyProductAttribute)).ConstructorArguments.Single().Value;
-      }
-    }
-
-    #endregion
-
     #region Поля и свойства
 
     /// <summary>
     /// Информация о продукте для главной сборки.
     /// </summary>
-    private static readonly Lazy<ProductInfo> mainAssemblyProductInfo = new Lazy<ProductInfo>(() => new ProductInfo(Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()));
+    private static readonly Lazy<AssemblyProductInfo> mainAssemblyProductInfo = new Lazy<AssemblyProductInfo>(() => new AssemblyProductInfo(Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()));
 
     #endregion
 
@@ -58,10 +27,10 @@ namespace ConfigSettings.Internal
     /// <param name="productInfo">Информация о продукте.</param>
     /// <param name="subpath">Путь к подпапкам.</param>
     /// <returns>Папка.</returns>
-    private static string ProductUserApplicationData(ProductInfo productInfo, params string[] subpath)
+    public static string ProductUserApplicationData(AssemblyProductInfo productInfo, params string[] subpath)
     {
       var subpaths = Path.Combine(subpath);
-      return Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), productInfo.CompanyName, productInfo.ProductName, subpaths)).FullName;
+      return Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), productInfo.CompanyName, productInfo.NormalizedProductName, subpaths)).FullName;
     }
 
     /// <summary>
