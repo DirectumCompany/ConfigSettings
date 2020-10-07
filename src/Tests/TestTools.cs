@@ -20,8 +20,11 @@ namespace ConfigSettingsTests
     public static string GetConfigSettings(string configPath)
     {
       var content = File.ReadAllText(configPath);
-      return content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
+      content = content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
 <settings>", string.Empty).Replace("</settings>", string.Empty);
+      content = content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<settings />", string.Empty);
+      return content;
     }
   }
 }

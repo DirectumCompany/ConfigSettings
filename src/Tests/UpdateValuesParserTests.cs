@@ -54,8 +54,7 @@ namespace ConfigSettingsTests
       parser.RemoveAllVariables("n1");
       parser.Save();
       
-      TestTools.GetConfigSettings(baseSettings).Should().Be(@"
-"); 
+      TestTools.GetConfigSettings(baseSettings).Should().Be(@""); 
       
       TestTools.GetConfigSettings(rootSettings).Should().Be($@"
   <import from=""{baseSettings}"" />
@@ -63,7 +62,7 @@ namespace ConfigSettingsTests
     }   
     
     [Test]
-    public void RemoveVariable()
+    public void RemoveRootVariable()
     {
       var baseSettings = this.CreateSettings(@"
 <var name=""n1"" value=""vb1"" />
@@ -83,6 +82,29 @@ namespace ConfigSettingsTests
       
       TestTools.GetConfigSettings(rootSettings).Should().Be($@"
   <import from=""{baseSettings}"" />
+");
+    }    
+    
+    [Test]
+    public void RemoveBaseVariable()
+    {
+      var baseSettings = this.CreateSettings(@"
+<var name=""n1"" value=""vb1"" />
+");
+
+      var rootSettings = this.CreateSettings($@"
+<import from=""{baseSettings}"" />
+<var name=""n1"" value=""v1"" />
+");
+      var parser = new ConfigSettingsParser(rootSettings);
+      parser.RemoveVariable("n1", baseSettings);
+      parser.Save();
+      
+      TestTools.GetConfigSettings(baseSettings).Should().Be(@""); 
+      
+      TestTools.GetConfigSettings(rootSettings).Should().Be($@"
+  <import from=""{baseSettings}"" />
+  <var name=""n1"" value=""v1"" />
 ");
     }
     
