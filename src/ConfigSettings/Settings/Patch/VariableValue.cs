@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ConfigSettings.Settings.Patch
+﻿namespace ConfigSettings.Settings.Patch
 {
   /// <summary>
   /// Переменная настроек.
@@ -16,11 +14,6 @@ namespace ConfigSettings.Settings.Patch
     /// Источник хранения настройки.
     /// </summary>
     public string FilePath { get; }
-
-    /// <summary>
-    /// Комментарии.
-    /// </summary>
-    public List<string> Comments { get; set; }
 
     /// <summary>
     /// Конструктор.
