@@ -176,9 +176,9 @@ namespace ConfigSettings.Patch
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
     /// <returns>Список переменных.</returns>
-    public IEnumerable<Variable> GetAllVariables(string variableName)
+    public IReadOnlyList<Variable> GetAllVariables(string variableName)
     {
-      return this.variables.Where(variable => variable.Name == variableName);
+      return this.variables.Where(variable => variable.Name == variableName).ToList();
     }
 
 
@@ -218,10 +218,21 @@ namespace ConfigSettings.Patch
     /// Удалить переменную, если она есть.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
-    public void RemoveVariable(string variableName)
+    public void RemoveAllVariables(string variableName)
     {
-      var variables = this.GetAllVariables(variableName);
-      foreach(var variable in variables)
+      foreach(var variable in this.GetAllVariables(variableName))
+        this.variables.Remove(variable);
+    }
+
+    /// <summary>
+    /// Удалить переменную, если она есть.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <param name="configPath">Путь до конфига.</param>
+    public void RemoveVariable(string variableName, string configPath = null)
+    {
+      var variable = this.GetVariable(variableName, configPath);
+      if (variable != null)
         this.variables.Remove(variable);
     }
 

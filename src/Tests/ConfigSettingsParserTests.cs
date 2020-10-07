@@ -5,7 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 using ConfigSettings.Patch;
-using ConfigSettings.Utils;
+using ConfigSettingsTests;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -28,7 +28,7 @@ namespace ConfigSettings.Tests
   public class TestPlugin
   {
     [XmlIgnore]
-    public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> Attributes { get; private set; } = new Dictionary<string, string>();
 
     [XmlAnyAttribute]
     public XmlAttribute[] XmlAttributes
@@ -64,7 +64,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateVariable(parser.RootSettingsFilePath, "testVariableName", "testVariableValue");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <var name=""testVariableName"" value=""testVariableValue"" />
 ");
@@ -77,7 +77,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateMetaVariable(parser.RootSettingsFilePath, "testMetaVariableName", "testVariableValue");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <meta name=""testMetaVariableName"" value=""testVariableValue"" />
 ");
@@ -91,7 +91,7 @@ namespace ConfigSettings.Tests
     <tenant name=""beta"" user=""alpha_user"" />");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <block name=""testBlockName"">
     <tenant name=""alpha"" db=""alpha_db"" />
@@ -107,7 +107,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <import from=""test\file\path"" />
 ");
@@ -160,7 +160,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <block name=""testBlockName"" enabled=""true"">
     <TestTenant Name=""t1"" />
@@ -181,7 +181,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <block name=""testBlockName"" enabled=""true"">
     <test_custom_root custom_name=""t1"" />
@@ -227,7 +227,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "tenantGroups", true, tenantGroups);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
   <block name=""tenantGroups"" enabled=""true"">
     <ArrayOfTestTenant>
       <TestTenant Name=""a1"" />
@@ -257,7 +257,7 @@ namespace ConfigSettings.Tests
       parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "nestedTenantGroups", true, nestedTenantList);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
   <block name=""nestedTenantGroups"" enabled=""true"">
     <TestNestedTenants>
       <Tenants>
@@ -286,7 +286,7 @@ namespace ConfigSettings.Tests
       });
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
   <block name=""TestPluginSettings"" enabled=""true"">
     <TestPlugin id=""id_value"" />
     <TestPlugin name=""name_value"" />
@@ -374,22 +374,9 @@ namespace ConfigSettings.Tests
       parser.GetAllImports().Should().HaveCount(0);
     }
 
-    public string GetConfigSettings(string configPath)
-    {
-      var content = File.ReadAllText(configPath);
-      return content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<settings>", string.Empty).Replace("</settings>", string.Empty);
-    }
-
     private string CreateSettings(string settings)
     {
-      var content = $@"<?xml version='1.0' encoding='utf-8'?>
-<settings>
-{settings}
-</settings>";
-      var fileName = Path.Combine(this.tempPath, $@"test_settings_{Guid.NewGuid().ToShortString()}.xml");
-      File.WriteAllText(fileName, content);
-      return fileName;
+      return TestTools.CreateSettings(settings, this.tempPath);
     }
   }
 }

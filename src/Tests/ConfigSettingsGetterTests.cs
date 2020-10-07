@@ -1,8 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Xml;
 using ConfigSettings.Patch;
-using ConfigSettings.Utils;
+using ConfigSettingsTests;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -63,7 +62,7 @@ namespace ConfigSettings.Tests
       var getter = CreateConfigSettingsGetter(configSettingsPath);
       getter.Set("GIT_ROOT_DIRECTORY", "d:\\ee2");
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <var name=""GIT_ROOT_DIRECTORY"" value=""d:\ee2"" />
   <block name=""REPOSITORIES"">
@@ -81,7 +80,7 @@ namespace ConfigSettings.Tests
       var getter = CreateConfigSettingsGetter(configSettingsPath);
       getter.SetBlock("TESTBLOCK", null, null);
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <block name=""REPOSITORIES""></block>
   <block name=""TESTBLOCK""></block>
@@ -101,7 +100,7 @@ namespace ConfigSettings.Tests
       getter.SetBlock("TEST_FALSE_BLOCK", false, null);
       getter.SetBlock("TEST_NULL_BLOCK", null, null);
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <block name=""ORIGIN_TRUE_BLOCK"" enabled=""true""></block>
   <block name=""ORIGIN_FALSE_BLOCK"" enabled=""false""></block>
@@ -178,7 +177,7 @@ namespace ConfigSettings.Tests
   <testRepository folderName=""base"" solutionType=""Base"" url="""" />
   <testRepository folderName=""work"" solutionType=""Work"" url="""" />");
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <block name=""ORIGIN_TRUE_BLOCK"" enabled=""false"">
     <repository folderName=""base"" solutionType=""Base"" url="""" />
@@ -201,7 +200,7 @@ namespace ConfigSettings.Tests
       var getter = CreateConfigSettingsGetter(configSettingsPath);
       getter.SetImport("test/import/from");
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <import from=""origin/import/from"" />
   <import from=""test/import/from"" />
@@ -217,7 +216,7 @@ namespace ConfigSettings.Tests
       var getter = CreateConfigSettingsGetter(configSettingsPath);
       getter.Set("testName", "testValue");
       getter.Save();
-      var content = this.GetConfigSettings(configSettingsPath);
+      var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
   <var name=""testName"" value=""testValue"" />
 ");
@@ -256,20 +255,7 @@ namespace ConfigSettings.Tests
 
     private string CreateSettings(string settings)
     {
-      var content = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<settings>
-{settings}
-</settings>";
-      var fileName = Path.Combine(this.tempPath, $@"test_settings_{Guid.NewGuid().ToShortString()}.xml");
-      File.WriteAllText(fileName, content);
-      return fileName;
-    }
-
-    public string GetConfigSettings(string configPath)
-    {
-      var content = File.ReadAllText(configPath);
-      return content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<settings>", string.Empty).Replace("</settings>", string.Empty);
+      return TestTools.CreateSettings(settings, this.tempPath);
     }
   }
 }
