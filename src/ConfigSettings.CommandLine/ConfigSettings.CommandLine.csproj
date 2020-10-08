@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
-    <AssemblyName>ConfigSettingsA</AssemblyName>
+    <AssemblyName>cscmd</AssemblyName>
     <RootNamespace>ConfigSettings.CommandLine</RootNamespace>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>

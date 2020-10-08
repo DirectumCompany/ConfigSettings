@@ -13,6 +13,7 @@ namespace ConfigSettings.CommandLine
       {
         var methodCommand = new Command(mi.Name);
         methodCommand.ConfigureFromMethod(mi, csWrapper);
+        methodCommand.AddAlias(methodCommand.Name.ToKebabCase()); 
         foreach(var option in methodCommand.Options)
         {
           option.IsRequired = true;

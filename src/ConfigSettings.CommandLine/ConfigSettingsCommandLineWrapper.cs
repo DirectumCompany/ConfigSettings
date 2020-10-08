@@ -1,9 +1,13 @@
-﻿using System.CommandLine;
+﻿using System.Collections;
+using System.CommandLine;
 using System.CommandLine.IO;
 using ConfigSettings.Patch;
 
 namespace ConfigSettings.CommandLine
 {
+  /// <summary>
+  /// Обёртка надо ConfigSettingsParser и Getter для вызова из командной строки.
+  /// </summary>
   public class ConfigSettingsCommandLineWrapper
   {
     private static ConfigSettingsParser CreateParser(string settingsFilePath) => new ConfigSettingsParser(settingsFilePath);
@@ -12,34 +16,64 @@ namespace ConfigSettings.CommandLine
 
     private readonly IConsole console;
 
-    private void LogResult(object result)
+    private void LogIfNotEmpty(object resultItem)
     {
-      this.console.Out.WriteLine(result.ToString());
+      var stringValue = resultItem?.ToString();
+      if (!string.IsNullOrWhiteSpace(stringValue))
+        this.console.Out.WriteLine(stringValue);
     }
 
-    public int DefaultConfigSettingsFileName()
+    private void LogResult(object result)
+    {
+      if (result is IList resultAsList)
+      {
+        foreach (var resultItem in resultAsList) 
+          LogIfNotEmpty(resultItem);
+        
+        return;
+      }
+      
+      LogIfNotEmpty(result);
+    }
+
+    /// <summary>
+    /// Дефолтное имя файла с настройками.
+    /// </summary>
+    /// <returns></returns>
+    public int DefaultFilename()
     {
       this.LogResult(ChangeConfig.DefaultConfigSettingsFileName);
       return 0;
     }
 
-    public int GetAllImports(string settingsFilePath)
+    public int GetImports(string path)
     {
-      this.LogResult(CreateParser(settingsFilePath).GetAllImports());
+      this.LogResult(CreateParser(path).GetAllImports());
       return 0;
     }
 
-    public int HasVariable(string settingsFilePath, string variableName)
+    public int Has(string path, string name)
     {
-      this.LogResult(CreateParser(settingsFilePath).HasVariable(variableName));
+      this.LogResult(CreateParser(path).HasVariable(null, name));
       return 0;
     }
+    
+    public int HasBlock(string path, string name)
+    {
+      this.LogResult(CreateParser(path).HasBlock(null, name));
+      return 0;
+    }
+    
     public int Get(string settingsFilePath, string variableName)
     {
       this.LogResult(CreateGetter(settingsFilePath).Get<string>(variableName));
       return 0;
     }
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="console">Интерфейс консоли.</param>
     public ConfigSettingsCommandLineWrapper(IConsole console)
     {
       this.console = console;
