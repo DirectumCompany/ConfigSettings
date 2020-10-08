@@ -82,19 +82,6 @@ namespace ConfigSettings
     }
 
     /// <summary>
-    /// Установить блок.
-    /// </summary>
-    /// <param name="name">Имя блока.</param>
-    /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="block">Типизированный блок.</param>
-    /// <typeparam name="T">Тип блока.</typeparam>
-    /// <returns>Типизированный блок.</returns>
-    public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
-    {
-      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, isBlockEnabled, block);
-    }
-
-    /// <summary>
     /// Получить блок в виде XML.
     /// </summary>
     /// <param name="name">Имя блока.</param>
@@ -125,6 +112,19 @@ namespace ConfigSettings
     {
       this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, enabled, value);
     }
+
+    /// <summary>
+    /// Установить блок.
+    /// </summary>
+    /// <param name="name">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="block">Типизированный блок.</param>
+    /// <typeparam name="T">Тип блока.</typeparam>
+    /// <returns>Типизированный блок.</returns>
+    public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
+    {
+      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, isBlockEnabled, block);
+    }    
 
     /// <summary>
     /// Задать импорт.

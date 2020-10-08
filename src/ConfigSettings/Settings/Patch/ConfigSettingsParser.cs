@@ -53,15 +53,6 @@ namespace ConfigSettings.Patch
 
     #region Методы
 
-    /// <summary>
-    /// Получить список всех импортируемых конфигов, с учётом рекурсии.
-    /// </summary>
-    /// <returns>Список всех импортируемых конфигов. Все пути в полученном списке - абсолютные пути импортируемых файлов настроек.</returns>
-    public IReadOnlyList<string> GetAllImports()
-    {
-      return this.importsFrom.Where(r => !r.IsRoot).Select(r => r.GetAbsolutePath()).ToList();
-    }
-
     private bool? ComputeBlockAccessibility(string blockName)
     {
       var parser = new ExpressionEvaluator(blockName);
@@ -98,7 +89,79 @@ namespace ConfigSettings.Patch
     {
       return !this.ComputeBlockAccessibility(blockName) ?? this.IsBlockAccessible(blockName, false);
     }
+    
+    /// <summary>
+    /// Xml часть с доступностью блока.
+    /// </summary>
+    /// <param name="enabled">Доступность блока.</param>
+    /// <returns>Строка в виде части xml.</returns>
+    private static string BlockEnabledXmlPart(bool? enabled)
+    {
+      return enabled == null ? string.Empty : $@" enabled=""{enabled.ToString().ToLower()}""";
+    }    
 
+    /// <summary>
+    /// Получить переменную.
+    /// </summary>
+    /// <param name="settingsPath">Путь к файлу, в котором надо искать переменную.</param>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Переменная или null.</returns>
+    public Variable GetVariable(string settingsPath, string variableName)
+    {
+      return this.GetAllVariables(variableName).LastOrDefault(variable => settingsPath == null || variable.FilePath == settingsPath);
+    }
+    
+    /// <summary>
+    /// Получить блок.
+    /// </summary>
+    /// <param name="settingsPath">Путь до файла с настройками.</param>
+    /// <param name="blockName">Имя блока.</param>
+    /// <returns>Блок или null.</returns>
+    public BlockSetting GetBlock(string settingsPath, string blockName)
+    {
+      return this.blocks.LastOrDefault(b => b.Name == blockName 
+                                            && (settingsPath == null || b.FilePath == settingsPath));
+    }    
+
+    /// <summary>
+    /// Получить переменные с заданным именем со всех импортируемых конфигов.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Список переменных.</returns>
+    public IReadOnlyList<Variable> GetAllVariables(string variableName)
+    {
+      return this.variables.Where(variable => variable.Name == variableName).ToList();
+    }
+    
+    /// <summary>
+    /// Получить список всех импортируемых конфигов, с учётом рекурсии.
+    /// </summary>
+    /// <returns>Список всех импортируемых конфигов. Все пути в полученном списке - абсолютные пути импортируемых файлов настроек.</returns>
+    public IReadOnlyList<string> GetAllImports()
+    {
+      return this.importsFrom.Where(r => !r.IsRoot).Select(r => r.GetAbsolutePath()).ToList();
+    }    
+
+    /// <summary>
+    /// Получить значение переменной, указанное в настройке.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Значение переменной.</returns>
+    public string GetVariableValue(string variableName)
+    {
+      return this.GetVariable(null, variableName)?.Value;
+    }
+    
+    /// <summary>
+    /// Получить значение метапеременной, указанное в настройке.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>Знаение переменной.</returns>
+    public string GetMetaVariableValue(string variableName)
+    {
+      return this.metaVariables.LastOrDefault(variable => variable.Name == variableName)?.Value;
+    }
+    
     /// <summary>
     /// Получить содержимое блока в виде строки.
     /// </summary>
@@ -145,49 +208,25 @@ namespace ConfigSettings.Patch
       using (var xmlReader = new XmlTextReader(content, XmlNodeType.Element, parserContext))
         return XElement.Load(xmlReader);
     }
-
+    
     /// <summary>
-    /// Проверить, что для переменной в настройках указано значение.
+    /// Получить значение импорта.
     /// </summary>
-    /// <param name="settingsPath">Путь до файла с настройками</param>
-    /// <param name="variableName">Имя переменной.</param>
-    /// <returns>True - если значение указано.</returns>
-    public bool HasVariable(string settingsPath, string variableName)
+    /// <param name="filePath">Путь к файлу.</param>
+    /// <returns>Переменная с импортом.</returns>
+    public ImportFrom GetImportFrom(string filePath)
     {
-      return this.GetVariable(settingsPath, variableName) != null;
+      return this.GetImportsFromExceptRoot(filePath).LastOrDefault();
     }
 
     /// <summary>
-    /// Получить переменную.
+    /// Получить все импорты файла.
     /// </summary>
-    /// <param name="settingsPath">Путь к файлу, в котором надо искать переменную.</param>
-    /// <param name="variableName">Имя переменной.</param>
-    /// <returns>Переменная или null.</returns>
-    public Variable GetVariable(string settingsPath, string variableName)
+    /// <param name="filePath">Путь к файлу.</param>
+    /// <returns>Импорты файла.</returns>
+    private IEnumerable<ImportFrom> GetImportsFromExceptRoot(string filePath)
     {
-      return this.variables.LastOrDefault(variable => variable.Name == variableName
-        && (settingsPath == null || variable.FilePath == settingsPath));
-    }
-
-    /// <summary>
-    /// Получить переменные с заданным именем со всех импортируемых конфигов.
-    /// </summary>
-    /// <param name="variableName">Имя переменной.</param>
-    /// <returns>Список переменных.</returns>
-    public IReadOnlyList<Variable> GetAllVariables(string variableName)
-    {
-      return this.variables.Where(variable => variable.Name == variableName).ToList();
-    }
-
-
-    /// <summary>
-    /// Получить значение переменной, указанное в настройке.
-    /// </summary>
-    /// <param name="variableName">Имя переменной.</param>
-    /// <returns>Значение переменной.</returns>
-    public string GetVariableValue(string variableName)
-    {
-      return this.GetVariable(null, variableName)?.Value;
+      return this.importsFrom.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -209,29 +248,7 @@ namespace ConfigSettings.Patch
       
       newValue.Update(variableValue, comments);
     }
-
-    /// <summary>
-    /// Удалить переменную, если она есть.
-    /// </summary>
-    /// <param name="variableName">Имя переменной.</param>
-    public void RemoveAllVariables(string variableName)
-    {
-      foreach(var variable in this.GetAllVariables(variableName))
-        this.variables.Remove(variable);
-    }
-
-    /// <summary>
-    /// Удалить переменную, если она есть.
-    /// </summary>
-    /// <param name="settingsPath">Путь до конфига.</param>
-    /// <param name="variableName">Имя переменной.</param>
-    public void RemoveVariable(string settingsPath, string variableName)
-    {
-      var variable = this.GetVariable(settingsPath, variableName);
-      if (variable != null)
-        this.variables.Remove(variable);
-    }
-
+    
     /// <summary>
     /// Установить значение метапеременной, указанное в настройке.
     /// </summary>
@@ -250,30 +267,8 @@ namespace ConfigSettings.Patch
       }
       
       newValue.Update(variableValue, comments);
-    }
-
-    /// <summary>
-    /// Получить блок..
-    /// </summary>
-    /// <param name="settingsPath">Путь до файла с настройками</param>
-    /// <param name="blockName">Имя блока.</param>
-    /// <returns>Блок или null.</returns>
-    public BlockSetting GetBlock(string settingsPath, string blockName)
-    {
-      return this.blocks.LastOrDefault(b => b.Name == blockName 
-                                            && (settingsPath == null || b.FilePath == settingsPath));
-    }
-
-    /// <summary>
-    /// Xml часть с доступностью блока.
-    /// </summary>
-    /// <param name="enabled">Доступность блока.</param>
-    /// <returns>Строка в виде части xml.</returns>
-    private static string BlockEnabledXmlPart(bool? enabled)
-    {
-      return enabled == null ? string.Empty : $@" enabled=""{enabled.ToString().ToLower()}""";
-    }
-
+    }    
+    
     /// <summary>
     /// Установить значение блока.
     /// </summary>
@@ -336,13 +331,57 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
+    /// Удалить переменную, если она есть.
+    /// </summary>
+    /// <param name="variableName">Имя переменной.</param>
+    public void RemoveAllVariables(string variableName)
+    {
+      foreach(var variable in this.GetAllVariables(variableName))
+        this.variables.Remove(variable);
+    }
+
+    /// <summary>
+    /// Удалить переменную, если она есть.
+    /// </summary>
+    /// <param name="settingsPath">Путь до конфига.</param>
+    /// <param name="variableName">Имя переменной.</param>
+    public void RemoveVariable(string settingsPath, string variableName)
+    {
+      var variable = this.GetVariable(settingsPath, variableName);
+      if (variable != null)
+        this.variables.Remove(variable);
+    }
+    
+    /// <summary>
+    /// Удалить импорт файла.
+    /// </summary>
+    /// <param name="fileName">Путь к файлу.</param>
+    public void RemoveImportFrom(string fileName)
+    {
+      var importFromToDelete = this.GetImportFrom(fileName);
+      if (importFromToDelete != null)
+        this.importsFrom.Remove(importFromToDelete);
+    }    
+
+    /// <summary>
+    /// Проверить, что для переменной в настройках указано значение.
+    /// </summary>
+    /// <param name="settingsPath">Путь до файла с настройками</param>
+    /// <param name="variableName">Имя переменной.</param>
+    /// <returns>True - если значение указано.</returns>
+    public bool HasVariable(string settingsPath, string variableName)
+    {
+      return this.GetVariable(settingsPath, variableName) != null;
+    }
+
+    /// <summary>
     /// Проверить, что для метапеременной в настройках указано значение.
     /// </summary>
     /// <param name="variableName">Имя переменной.</param>
     /// <returns>True - если значение указано.</returns>
     public bool HasMetaVariable(string variableName)
     {
-      return this.metaVariables.Select(variable => variable.Name == variableName).FirstOrDefault();
+      return this.metaVariables.FirstOrDefault(variable => variable.Name == variableName) != null;
     }
 
     /// <summary>
@@ -357,23 +396,6 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
-    /// Получить значение метапеременной, указанное в настройке.
-    /// </summary>
-    /// <param name="variableName">Имя переменной.</param>
-    /// <returns>Знаение переменной.</returns>
-    public string GetMetaVariableValue(string variableName)
-    {
-      string result = null;
-      foreach (var variable in this.metaVariables)
-      {
-        if (variable.Name == variableName)
-          result = variable.Value;
-      }
-
-      return result;
-    }
-
-    /// <summary>
     /// Проверить наличие переменной import from.
     /// </summary>
     /// <param name="fileName">Путь к файлу.</param>
@@ -382,38 +404,7 @@ namespace ConfigSettings.Patch
     {
       return this.GetImportsFromExceptRoot(fileName).Any();
     }
-
-    /// <summary>
-    /// Удалить импорт файла.
-    /// </summary>
-    /// <param name="fileName">Путь к файлу.</param>
-    public void RemoveImportFrom(string fileName)
-    {
-      var importFromToDelete = this.GetImportFrom(fileName);
-      if (importFromToDelete != null)
-        this.importsFrom.Remove(importFromToDelete);
-    }
-
-    /// <summary>
-    /// Получить значение импорта.
-    /// </summary>
-    /// <param name="filePath">Путь к файлу.</param>
-    /// <returns>Переменная с импортом.</returns>
-    public ImportFrom GetImportFrom(string filePath)
-    {
-      return this.GetImportsFromExceptRoot(filePath).LastOrDefault();
-    }
-
-    /// <summary>
-    /// Получить все импорты файла.
-    /// </summary>
-    /// <param name="filePath">Путь к файлу.</param>
-    /// <returns>Импорты файла.</returns>
-    private IEnumerable<ImportFrom> GetImportsFromExceptRoot(string filePath)
-    {
-      return this.importsFrom.Where(v => !v.IsRoot && v.GetAbsolutePath().EndsWith(filePath, StringComparison.OrdinalIgnoreCase));
-    }
-
+    
     /// <summary>
     /// Распарсить корневой xml-источник настроек.
     /// </summary>
