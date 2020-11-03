@@ -332,7 +332,7 @@ namespace ConfigSettings.Tests
     private static void AddImport(string fileName, string importfileName)
     {
       var parser = new ConfigSettingsParser(fileName);
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, importfileName);
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, importfileName);
       parser.Save();
     }
   }

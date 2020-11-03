@@ -9,7 +9,11 @@ using ConfigSettings.Settings.Patch;
 namespace ConfigSettings.Patch
 {
   /// <summary>
-  /// Парсер файла настроек.
+  /// Парсер файла настроек. Считывает настройки с указанного файла и со всех импортируемых файлов.
+  /// Помнит файл-источник для каждой считанной настройки.
+  /// Читает все импортируемые файлы и кеширует все считанные настройки при создании инстанса класса.
+  /// Позволяет записывать настройки в любой файл, не проверяет вхождение этого файла в считанный набор файлов.
+  /// !!! ПРИ СОХРАНЕНИИ ПЕРЕЗАПИСЫВАЕТ ВСЕ СЧИТАННЫЕ РАНЕЕ ФАЙЛЫ.
   /// </summary>
   public class ConfigSettingsParser
   {
@@ -315,7 +319,7 @@ namespace ConfigSettings.Patch
     /// <param name="settingsFilePath">Источник настройки.</param>
     /// <param name="filePath">Путь к файлу.</param>
     /// <param name="comments">Комментарии.</param>
-    public void AddOrUpdateImortFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
+    public void AddOrUpdateImportFrom(string settingsFilePath, string filePath, IReadOnlyList<string> comments = null)
     {
       var importFrom = this.GetImportFrom(filePath);
       if (importFrom == null)
@@ -511,7 +515,7 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(from))
         return;
 
-      this.AddOrUpdateImortFrom(settingsFilePath, from, GetComments(element));
+      this.AddOrUpdateImportFrom(settingsFilePath, from, GetComments(element));
     }
 
     private void ParseBlock(string settingsFilePath, XElement element)

@@ -115,7 +115,7 @@ namespace ConfigSettingsTests
       var rootPath = Path.Combine(this.tempPath, nameof(this.AddBaseConfigWithVariable), "rootConfig.xml");
       var basePath = Path.Combine(this.tempPath, nameof(this.AddBaseConfigWithVariable), "baseConfig.xml");
       var parser = new ConfigSettingsParser(rootPath);
-      parser.AddOrUpdateImortFrom(rootPath, basePath);
+      parser.AddOrUpdateImportFrom(rootPath, basePath);
       parser.AddOrUpdateVariable(basePath, "n1", "v1");
       parser.Save();
 

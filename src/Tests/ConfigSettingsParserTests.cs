@@ -107,7 +107,7 @@ namespace ConfigSettings.Tests
         "SubFolder",
         $"{nameof(this.WhenSaveImportFromInSingleFile)}.xmnl"); 
       var parser = new ConfigSettingsParser(tempPathWithUnixistedSubfolders);
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.Save();
 
       TestTools.GetConfigSettings(tempPathWithUnixistedSubfolders).Should()
@@ -120,7 +120,7 @@ namespace ConfigSettings.Tests
     public void TestHasImportFromExistedFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.HasImportFrom("path").Should().BeTrue();
       parser.HasImportFrom(@"test\file\path").Should().BeTrue();
       parser.HasImportFrom("path1").Should().BeFalse();
@@ -328,8 +328,8 @@ namespace ConfigSettings.Tests
     public void TestGetAllImports()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
       var imports = parser.GetAllImports();
 
@@ -364,8 +364,8 @@ namespace ConfigSettings.Tests
     public void TestRemoveImportFrom()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
-      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
       var imports = parser.GetAllImports();
       imports.Should().HaveCount(2);

@@ -5,10 +5,11 @@ using ConfigSettings.Patch;
 
 namespace ConfigSettings
 {
-  /// <summary>
-  /// Получатель настроек.
-  /// </summary>
-  public class ConfigSettingsGetter
+    /// <summary>
+    /// Получатель настроек. Представляет собой обертку над <see cref="ConfigSettingsParser"/> с усеченным функционалом.
+    /// Считывает настройки из корневого файла (указывается при создании), но записывает только в корневой файл.
+    /// </summary>
+    public class ConfigSettingsGetter
   {
     /// <summary>
     /// Парсер настроек.
@@ -132,7 +133,7 @@ namespace ConfigSettings
     /// <param name="filePath">Путь к файлу.</param>
     public void SetImport(string filePath)
     {
-      this.configSettingsParser.AddOrUpdateImortFrom(this.configSettingsParser.RootSettingsFilePath, filePath);
+      this.configSettingsParser.AddOrUpdateImportFrom(this.configSettingsParser.RootSettingsFilePath, filePath);
     }
 
     /// <summary>
