@@ -321,6 +321,18 @@ namespace ConfigSettings.Patch
     }
 
     /// <summary>
+    /// Установить значение блока в корневом файле.
+    /// </summary>
+    /// <param name="blockName">Имя блока.</param>
+    /// <param name="isBlockEnabled">Доступность блока.</param>
+    /// <param name="blockContentWithoutRoot">Содержимое блока в виде строки.</param>
+    /// <param name="comments">Комментарии.</param>
+    internal void AddOrUpdateBlock(string blockName, bool? isBlockEnabled, string blockContentWithoutRoot, IReadOnlyList<string> comments = null)
+    {
+      this.AddOrUpdateBlock(this.RootSettingsFilePath, blockName, isBlockEnabled, blockContentWithoutRoot, comments);
+    }
+
+    /// <summary>
     /// Установить значение блока в указанном файле.
     /// </summary>
     /// <param name="settingsFilePath">Источник настройки.</param>
