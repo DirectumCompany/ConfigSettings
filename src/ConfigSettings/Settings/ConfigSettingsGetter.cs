@@ -7,7 +7,7 @@ namespace ConfigSettings
 {
     /// <summary>
     /// Получатель настроек. Представляет собой обертку над <see cref="ConfigSettingsParser"/> с усеченным функционалом.
-    /// Считывает настройки из корневого файла (указывается при создании), но записывает только в корневой файл.
+    /// Считывает настройки из корневого файла (указывается при создании).
     /// </summary>
     public class ConfigSettingsGetter
   {
@@ -90,58 +90,6 @@ namespace ConfigSettings
     public XElement GetXmlBlock(string name)
     {
       return this.configSettingsParser.GetXmlBlockContent(name);
-    }
-
-    /// <summary>
-    /// Установить значение.
-    /// </summary>
-    /// <param name="name">Имя переменной.</param>
-    /// <param name="value">Значение переменной.</param>
-    /// <typeparam name="T">Тип переменной.</typeparam>
-    public void Set<T>(string name, T value)
-    {
-      this.configSettingsParser.AddOrUpdateVariable(this.configSettingsParser.RootSettingsFilePath, name, value.ToString());
-    }
-
-    /// <summary>
-    /// Установить значение блока.
-    /// </summary>
-    /// <param name="name">Имя блока.</param>
-    /// <param name="enabled">Доступность блока.</param>
-    /// <param name="value">Значение блока.</param>
-    public void SetBlock(string name, bool? enabled, string value)
-    {
-      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, enabled, value);
-    }
-
-    /// <summary>
-    /// Установить блок.
-    /// </summary>
-    /// <param name="name">Имя блока.</param>
-    /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="block">Типизированный блок.</param>
-    /// <typeparam name="T">Тип блока.</typeparam>
-    /// <returns>Типизированный блок.</returns>
-    public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
-    {
-      this.configSettingsParser.AddOrUpdateBlock(this.configSettingsParser.RootSettingsFilePath, name, isBlockEnabled, block);
-    }    
-
-    /// <summary>
-    /// Задать импорт.
-    /// </summary>
-    /// <param name="filePath">Путь к файлу.</param>
-    public void SetImport(string filePath)
-    {
-      this.configSettingsParser.AddOrUpdateImportFrom(this.configSettingsParser.RootSettingsFilePath, filePath);
-    }
-
-    /// <summary>
-    /// Сохранить.
-    /// </summary>
-    public void Save()
-    {
-      this.configSettingsParser.Save();
     }
 
     /// <summary>
