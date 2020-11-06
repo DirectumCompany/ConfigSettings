@@ -451,7 +451,7 @@ namespace ConfigSettings.Patch
     /// <returns>True - если значение указано.</returns>
     public bool HasVariable(string variableName)
     {
-      return this.HasVariable(this.RootSettingsFilePath, variableName);
+      return this.HasVariable(null, variableName);
     }
 
     /// <summary>
@@ -482,7 +482,7 @@ namespace ConfigSettings.Patch
     /// <returns>True, если блок существует.</returns>
     public bool HasBlock(string blockName)
     {
-      return this.HasBlock(this.RootSettingsFilePath, blockName);
+      return this.HasBlock(null, blockName);
     }
 
     /// <summary>
