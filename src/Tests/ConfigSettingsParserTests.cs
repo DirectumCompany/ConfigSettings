@@ -377,6 +377,38 @@ namespace ConfigSettings.Tests
       parser.GetAllImports().Should().HaveCount(0);
     }
 
+    [Test]
+    public void WhenSetRelativeImportThenPathShouldNotBeAbsolute()
+    {
+      var configSettingsPath = this.CreateSettings(@"  
+  <import from=""origin/import/from"" />
+");
+
+      var parser = new ConfigSettingsParser(configSettingsPath);
+      parser.AddOrUpdateImportFrom("test/import/from");
+      parser.Save();
+      var content = TestTools.GetConfigSettings(configSettingsPath);
+      content.Should().Be(@"
+  <import from=""origin/import/from"" />
+  <import from=""test/import/from"" />
+");
+    }
+
+    [Test]
+    public void WhenParseEmptyImportAndAddVariableThenImportBlockShouldNotBeSaved()
+    {
+      var configSettingsPath = this.CreateSettings(@"  
+  <import from="""" />
+");
+      var parser = new ConfigSettingsParser(configSettingsPath);
+      parser.AddOrUpdateVar("testName", "testValue");
+      parser.Save();
+      var content = TestTools.GetConfigSettings(configSettingsPath);
+      content.Should().Be(@"
+  <var name=""testName"" value=""testValue"" />
+");
+    }
+
     private string CreateSettings(string settings)
     {
       return TestTools.CreateSettings(settings, this.tempPath);
