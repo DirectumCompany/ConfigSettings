@@ -5,7 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 using ConfigSettings.Patch;
-using ConfigSettings.Utils;
+using ConfigSettingsTests;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -15,8 +15,8 @@ namespace ConfigSettings.Tests
   {
     [XmlAttribute]
     public string Name { get; set; }
-  }  
-  
+  }
+
   [XmlType("test_custom_root")]
   [XmlRoot("test_custom_root")]
   public class TestTenantWithCustomRootElementName
@@ -28,7 +28,7 @@ namespace ConfigSettings.Tests
   public class TestPlugin
   {
     [XmlIgnore]
-    public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> Attributes { get; private set; } = new Dictionary<string, string>();
 
     [XmlAnyAttribute]
     public XmlAttribute[] XmlAttributes
@@ -38,7 +38,12 @@ namespace ConfigSettings.Tests
         if (this.Attributes == null)
           return null;
         var doc = new XmlDocument();
-        return this.Attributes.Select(p => { var a = doc.CreateAttribute(p.Key); a.Value = p.Value; return a; }).ToArray();
+        return this.Attributes.Select(p =>
+        {
+          var a = doc.CreateAttribute(p.Key);
+          a.Value = p.Value;
+          return a;
+        }).ToArray();
       }
       set { this.Attributes = value?.ToDictionary(a => a.Name, a => a.Value); }
     }
@@ -55,16 +60,17 @@ namespace ConfigSettings.Tests
   {
     private readonly string tempPath = TestEnvironment.CreateRandomPath("ConfigSettingsParserTests");
 
-    private string TempConfigFilePath => Path.Combine(this.tempPath, TestContext.CurrentContext.Test.MethodName + ".xml");
+    private string TempConfigFilePath =>
+      Path.Combine(this.tempPath, TestContext.CurrentContext.Test.MethodName + ".xml");
 
     [Test]
     public void WhenSaveVariablesInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetVariableValue("testVariableName", "testVariableValue");
+      parser.AddOrUpdateVariable(parser.RootSettingsFilePath, "testVariableName", "testVariableValue");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <var name=""testVariableName"" value=""testVariableValue"" />
 ");
@@ -74,10 +80,10 @@ namespace ConfigSettings.Tests
     public void WhenSaveMetaVariableInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetMetaVariableValue("testMetaVariableName", "testVariableValue");
+      parser.AddOrUpdateMetaVariable(parser.RootSettingsFilePath, "testMetaVariableName", "testVariableValue");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <meta name=""testMetaVariableName"" value=""testVariableValue"" />
 ");
@@ -87,11 +93,12 @@ namespace ConfigSettings.Tests
     public void WhenSaveBlockInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetBlockValue("testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", null,
+        @"  <tenant name=""alpha"" db=""alpha_db"" />
     <tenant name=""beta"" user=""alpha_user"" />");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
   <block name=""testBlockName"">
     <tenant name=""alpha"" db=""alpha_db"" />
@@ -103,11 +110,14 @@ namespace ConfigSettings.Tests
     [Test]
     public void WhenSaveImportFromInSingleFile()
     {
-      var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
+      var tempPathWithUnixistedSubfolders = Path.Combine(TestEnvironment.CreateRandomPath("ConfigSettingsParserTests"),
+        "SubFolder",
+        $"{nameof(this.WhenSaveImportFromInSingleFile)}.xmnl");
+      var parser = new ConfigSettingsParser(tempPathWithUnixistedSubfolders);
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(tempPathWithUnixistedSubfolders).Should()
         .Be(@"
   <import from=""test\file\path"" />
 ");
@@ -117,7 +127,7 @@ namespace ConfigSettings.Tests
     public void TestHasImportFromExistedFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.HasImportFrom("path").Should().BeTrue();
       parser.HasImportFrom(@"test\file\path").Should().BeTrue();
       parser.HasImportFrom("path1").Should().BeFalse();
@@ -154,42 +164,42 @@ namespace ConfigSettings.Tests
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       var tenants = new List<TestTenant>
       {
-        new TestTenant { Name = "t1"},
+        new TestTenant {Name = "t1"},
         new TestTenant {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <TestTenant Name=""t1"" />
     <TestTenant Name=""t2"" />
   </block>
 ");
-    }  
-    
+    }
+
     [Test]
     public void TestSetBlockTypedArrayWithCustomElementName()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
       var tenants = new List<TestTenantWithCustomRootElementName>
       {
-        new TestTenantWithCustomRootElementName { Name = "t1"},
+        new TestTenantWithCustomRootElementName {Name = "t1"},
         new TestTenantWithCustomRootElementName {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should()
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <test_custom_root custom_name=""t1"" />
     <test_custom_root custom_name=""t2"" />
   </block>
 ");
-    }   
-    
+    }
+
     [Test]
     public void TestGetBlockTypedArrayWithCustomElementName()
     {
@@ -214,21 +224,21 @@ namespace ConfigSettings.Tests
       {
         new List<TestTenant>
         {
-          new TestTenant { Name = "a1" },
-          new TestTenant { Name = "a2" }
+          new TestTenant {Name = "a1"},
+          new TestTenant {Name = "a2"}
         },
         new List<TestTenant>
         {
-          new TestTenant { Name = "b1" },
-          new TestTenant { Name = "b2" }
+          new TestTenant {Name = "b1"},
+          new TestTenant {Name = "b2"}
         },
       };
 
-      parser.SetBlockValue("tenantGroups", true, tenantGroups);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "tenantGroups", true, tenantGroups);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""tenantGroups"" enabled=""True"">
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""tenantGroups"" enabled=""true"">
     <ArrayOfTestTenant>
       <TestTenant Name=""a1"" />
       <TestTenant Name=""a2"" />
@@ -239,8 +249,8 @@ namespace ConfigSettings.Tests
     </ArrayOfTestTenant>
   </block>
 ");
-    } 
-    
+    }
+
     [Test]
     public void TestSetBlockTypedNestedList()
     {
@@ -248,17 +258,17 @@ namespace ConfigSettings.Tests
 
       var tenantList = new List<TestTenant>
       {
-        new TestTenant { Name = "a1" },
-        new TestTenant { Name = "a2" }
+        new TestTenant {Name = "a1"},
+        new TestTenant {Name = "a2"}
       };
 
-      var nestedTenantList = new List<TestNestedTenants> { new TestNestedTenants { Tenants = tenantList } };
+      var nestedTenantList = new List<TestNestedTenants> {new TestNestedTenants {Tenants = tenantList}};
 
-      parser.SetBlockValue("nestedTenantGroups", true, nestedTenantList);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "nestedTenantGroups", true, nestedTenantList);
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""nestedTenantGroups"" enabled=""True"">
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""nestedTenantGroups"" enabled=""true"">
     <TestNestedTenants>
       <Tenants>
         <TestTenant Name=""a1"" />
@@ -268,7 +278,7 @@ namespace ConfigSettings.Tests
   </block>
 ");
     }
-  
+
     [Test]
     public void TestSetBlockTypedArrayAsAttributes()
     {
@@ -279,21 +289,21 @@ namespace ConfigSettings.Tests
       var db1 = new TestPlugin();
       db1.Attributes.Add("name", "name_value");
 
-      parser.SetBlockValue("TestPluginSettings", true, new List<TestPlugin>
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "TestPluginSettings", true, new List<TestPlugin>
       {
         da1,
         db1
       });
       parser.Save();
 
-      this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""TestPluginSettings"" enabled=""True"">
+      TestTools.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
+  <block name=""TestPluginSettings"" enabled=""true"">
     <TestPlugin id=""id_value"" />
     <TestPlugin name=""name_value"" />
   </block>
 ");
-    } 
-    
+    }
+
     [Test]
     public void TestGetBlockTypedArrayOfArray()
     {
@@ -314,8 +324,8 @@ namespace ConfigSettings.Tests
       tenantgroups.Should().HaveCount(2);
       var tenantsA = tenantgroups[0];
       tenantsA[0].Name.Should().Be("a1");
-      tenantsA[1].Name.Should().Be("a2"); 
-      
+      tenantsA[1].Name.Should().Be("a2");
+
       var tenantsB = tenantgroups[1];
       tenantsB[0].Name.Should().Be("b1");
       tenantsB[1].Name.Should().Be("b2");
@@ -325,15 +335,15 @@ namespace ConfigSettings.Tests
     public void TestGetAllImports()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
-      parser.SetImportFrom(@"test\file\path2");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
       var imports = parser.GetAllImports();
 
       imports.Should().HaveCount(2);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path"));
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path2"));
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().EndWith(@"test\file\path");
+      imports[1].Should().EndWith(@"test\file\path2");
     }
 
     [Test]
@@ -341,52 +351,119 @@ namespace ConfigSettings.Tests
     {
       var import1 = this.CreateSettings("");
       var import2 = this.CreateSettings("");
-      var import3 = this.CreateSettings($@"<import from=""{import1}"" /><import from=""{Path.GetFileName(import2)}"" />");
-      var root = this.CreateSettings($@"<import from=""{import3}"" />");
+      var import3 = this.CreateSettings($@"
+<import from=""{import1}"" />
+<import from=""{Path.GetFileName(import2)}"" />");
+      var root = this.CreateSettings($@"
+<import from=""{import3}"" />");
       var parser = new ConfigSettingsParser(root);
 
       var imports = parser.GetAllImports();
 
       imports.Should().HaveCount(3);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(import1);
-      imports.Should().Contain(import2);
-      imports.Should().Contain(import3);
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().Be(import1);
+      imports[1].Should().Be(import2);
+      imports[2].Should().Be(import3);
     }
 
     [Test]
     public void TestRemoveImportFrom()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
-      parser.SetImportFrom(@"test\file\path2");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImportFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
       var imports = parser.GetAllImports();
       imports.Should().HaveCount(2);
       parser.RemoveImportFrom(@"test\file\path");
       parser.RemoveImportFrom(@"test\file\path3");
       parser.GetAllImports().Should().HaveCount(1);
-      
+
       parser.RemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
       parser.GetAllImports().Should().HaveCount(0);
     }
 
-    public string GetConfigSettings(string configPath)
+    [Test]
+    public void WhenSetRelativeImportThenPathShouldNotBeAbsolute()
     {
-      var content = File.ReadAllText(configPath);
-      return content.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<settings>", string.Empty).Replace("</settings>", string.Empty);
+      var configSettingsPath = this.CreateSettings(@"  
+  <import from=""origin/import/from"" />
+");
+
+      var parser = new ConfigSettingsParser(configSettingsPath);
+      parser.AddOrUpdateImportFrom("test/import/from");
+      parser.Save();
+      var content = TestTools.GetConfigSettings(configSettingsPath);
+      content.Should().Be(@"
+  <import from=""origin/import/from"" />
+  <import from=""test/import/from"" />
+");
+    }
+
+    [Test]
+    public void WhenParseEmptyImportAndAddVariableThenImportBlockShouldNotBeSaved()
+    {
+      var configSettingsPath = this.CreateSettings(@"  
+  <import from="""" />
+");
+      var parser = new ConfigSettingsParser(configSettingsPath);
+      parser.AddOrUpdateVar("testName", "testValue");
+      parser.Save();
+      var content = TestTools.GetConfigSettings(configSettingsPath);
+      content.Should().Be(@"
+  <var name=""testName"" value=""testValue"" />
+");
+    }
+
+    [Test]
+    public void WhenSetBlockValueAndEnabled()
+    {
+      var configSettingsPath = this.CreateSettings(@"  
+  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""false"">
+    <repository folderName=""base"" solutionType=""Base"" url="""" />
+    <repository folderName=""work"" solutionType=""Work"" url="""" />
+</block>
+");
+      var getter = new ConfigSettingsParser(configSettingsPath);
+      getter.AddOrUpdateBlock("TEST_TRUE_BLOCK", true, @"
+  <testRepository folderName=""base"" solutionType=""Base"" url="""" />
+  <testRepository folderName=""work"" solutionType=""Work"" url="""" />");
+      getter.Save();
+      var content = TestTools.GetConfigSettings(configSettingsPath);
+      content.Should().Be(@"
+  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""false"">
+    <repository folderName=""base"" solutionType=""Base"" url="""" />
+    <repository folderName=""work"" solutionType=""Work"" url="""" />
+  </block>
+  <block name=""TEST_TRUE_BLOCK"" enabled=""true"">
+    <testRepository folderName=""base"" solutionType=""Base"" url="""" />
+    <testRepository folderName=""work"" solutionType=""Work"" url="""" />
+  </block>
+");
+    }
+
+    [Test]
+    public void WhenSaveNullConfigSettingsParserThenSaveShouldNotWork()
+    {
+      var parser = new ConfigSettingsParser(null);
+      parser.AddOrUpdateVar("NEW_VALUE", "true");
+      var exception = ((MethodThatThrows) delegate { parser.Save(); }).GetException();
+      exception.Should().BeOfType<InvalidOperationException>();
+    }
+
+    [Test]
+    public void WhenSetValueWithNullConfigSettingsParserThenExceptionShouldBeRaisen()
+    {
+      var parser = new ConfigSettingsParser(null);
+      parser.GetVariable(null, "NEW_VALUE").Should().BeNull();
+      parser.AddOrUpdateVar("NEW_VALUE", "true");
+      parser.GetVariable(null, "NEW_VALUE").Value.Should().Be("true");
     }
 
     private string CreateSettings(string settings)
     {
-      var content = $@"<?xml version='1.0' encoding='utf-8'?>
-<settings>
-{settings}
-</settings>";
-      var fileName = Path.Combine(this.tempPath, $@"test_settings_{Guid.NewGuid().ToShortString()}.xml");
-      File.WriteAllText(fileName, content);
-      return fileName;
+      return TestTools.CreateSettings(settings, this.tempPath);
     }
   }
 }

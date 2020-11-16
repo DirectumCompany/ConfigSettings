@@ -118,7 +118,8 @@ namespace ConfigSettings.Patch
         return new ExpressionEvaluator(argumentExpression).EvaluateValue(string.Empty, configSettingsParser);
       if (argumentExpression.Length >= 2 && argumentExpression[0] == '"' && argumentExpression[argumentExpression.Length - 1] == '"')
         return argumentExpression.Substring(1, argumentExpression.Length - 2);
-      return configSettingsParser.HasVariable(argumentExpression) ? configSettingsParser.GetVariableValue(argumentExpression) : null;
+      return configSettingsParser.GetVariableValue(argumentExpression) ??
+             configSettingsParser.GetBlock(null, argumentExpression)?.IsEnabled?.ToString().ToLower();
     }
 
     /// <summary>

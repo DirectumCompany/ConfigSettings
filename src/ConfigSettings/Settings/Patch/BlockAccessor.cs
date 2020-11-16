@@ -9,7 +9,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Класс для управления доступностью блоков xml-конфига.
   /// </summary>
-  public class BlockAccessor
+  internal class BlockAccessor
   {
     #region Поля и свойства
 
@@ -59,9 +59,7 @@ namespace ConfigSettings.Patch
       var needDisableBlock = false;
       foreach (var node in element.Nodes())
       {
-        var commentNode = node as XComment;
-        var elementNode = node as XElement;
-        if (commentNode != null)
+        if (node is XComment commentNode)
         {
           var comment = commentNode.Value.Trim();
           if (comment.Length > 3 && comment.StartsWith("{~", StringComparison.Ordinal) && comment.EndsWith("}", StringComparison.Ordinal))
@@ -78,7 +76,7 @@ namespace ConfigSettings.Patch
           else
             needDisableBlock = false;
         }
-        else if (elementNode != null)
+        else if (node is XElement elementNode)
         {
           if (needDisableBlock)
           {
@@ -102,9 +100,7 @@ namespace ConfigSettings.Patch
       var needEnableBlock = false;
       foreach (var node in element.Nodes())
       {
-        var commentNode = node as XComment;
-        var elementNode = node as XElement;
-        if (commentNode != null)
+        if (node is XComment commentNode)
         {
           var comment = commentNode.Value.Trim();
           if (comment.Length > 3 && comment.StartsWith("{~", StringComparison.Ordinal) && comment.EndsWith("}", StringComparison.Ordinal))
@@ -129,7 +125,7 @@ namespace ConfigSettings.Patch
             }
           }
         }
-        else if (elementNode != null)
+        else if (node is XElement elementNode)
         {
           needEnableBlock = false;
           this.EnableBlocks(elementNode, configSettingsParser, nodesToRemove);
@@ -148,9 +144,7 @@ namespace ConfigSettings.Patch
       string blockContent = null;
       foreach (var node in element.Nodes())
       {
-        var commentNode = node as XComment;
-        var elementNode = node as XElement;
-        if (commentNode != null)
+        if (node is XComment commentNode)
         {
           var comment = commentNode.Value.Trim();
           if (comment.Length > 3 && comment.StartsWith("{~", StringComparison.Ordinal) && comment.EndsWith("}", StringComparison.Ordinal))
@@ -161,7 +155,7 @@ namespace ConfigSettings.Patch
           else
             blockContent = null;
         }
-        else if (elementNode != null)
+        else if (node is XElement elementNode)
         {
           if (!string.IsNullOrEmpty(blockContent))
           {

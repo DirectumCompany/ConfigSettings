@@ -5,10 +5,11 @@ using ConfigSettings.Patch;
 
 namespace ConfigSettings
 {
-  /// <summary>
-  /// Получатель настроек.
-  /// </summary>
-  public class ConfigSettingsGetter
+    /// <summary>
+    /// Получатель настроек. Представляет собой обертку над <see cref="ConfigSettingsParser"/> с усеченным функционалом.
+    /// Считывает настройки из корневого файла (указывается при создании).
+    /// </summary>
+    public class ConfigSettingsGetter
   {
     /// <summary>
     /// Парсер настроек.
@@ -47,7 +48,7 @@ namespace ConfigSettings
     /// <returns>Настройка.</returns>
     public virtual T Get<T>(string name, Func<T> getDefaultValue)
     {
-      if (!this.configSettingsParser.HasVariable(name))
+      if (!this.configSettingsParser.HasVariable(null, name))
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);
@@ -82,19 +83,6 @@ namespace ConfigSettings
     }
 
     /// <summary>
-    /// Установить блок.
-    /// </summary>
-    /// <param name="name">Имя блока.</param>
-    /// <param name="isBlockEnabled">Доступность блока.</param>
-    /// <param name="block">Типизированный блок.</param>
-    /// <typeparam name="T">Тип блока.</typeparam>
-    /// <returns>Типизированный блок.</returns>
-    public void SetBlock<T>(string name, bool? isBlockEnabled, T block) where T: class
-    {
-      this.configSettingsParser.SetBlockValue(name, isBlockEnabled, block);
-    }
-
-    /// <summary>
     /// Получить блок в виде XML.
     /// </summary>
     /// <param name="name">Имя блока.</param>
@@ -102,45 +90,6 @@ namespace ConfigSettings
     public XElement GetXmlBlock(string name)
     {
       return this.configSettingsParser.GetXmlBlockContent(name);
-    }
-
-    /// <summary>
-    /// Установить значение.
-    /// </summary>
-    /// <param name="name">Имя переменной.</param>
-    /// <param name="value">Значение переменной.</param>
-    /// <typeparam name="T">Тип переменной.</typeparam>
-    public void Set<T>(string name, T value)
-    {
-      this.configSettingsParser.SetVariableValue(name, value.ToString());
-    }
-
-    /// <summary>
-    /// Установить значение блока.
-    /// </summary>
-    /// <param name="name">Имя блока.</param>
-    /// <param name="enabled">Доступность блока.</param>
-    /// <param name="value">Значение блока.</param>
-    public void SetBlock(string name, bool? enabled, string value)
-    {
-      this.configSettingsParser.SetBlockValue(name, enabled, value);
-    }
-
-    /// <summary>
-    /// Задать импорт.
-    /// </summary>
-    /// <param name="filePath">Путь к файлу.</param>
-    public void SetImport(string filePath)
-    {
-      this.configSettingsParser.SetImportFrom(filePath);
-    }
-
-    /// <summary>
-    /// Сохранить.
-    /// </summary>
-    public void Save()
-    {
-      this.configSettingsParser.Save();
     }
 
     /// <summary>

@@ -208,10 +208,9 @@ namespace ConfigSettings
         new ConfigPatch(config, parser).Patch();
         new LogSettingsPatch(config, currentConfigPath).Patch();
 
-        bool forceUseAppDataPath;
         var liveConfigPath = parser.HasMetaVariable(ForceUseAppDataPathMetaVariable) &&
-                                bool.TryParse(parser.GetMetaVariableValue(ForceUseAppDataPathMetaVariable),
-                                  out forceUseAppDataPath)
+                             bool.TryParse(parser.GetMetaVariableValue(ForceUseAppDataPathMetaVariable),
+                               out var forceUseAppDataPath)
           ? GetLiveConfigFilePath(currentConfigPath, forceUseAppDataPath)
           : GetLiveConfigFilePath(currentConfigPath);
         if (HasGeneratedBlock(config) && File.Exists(liveConfigPath))
@@ -326,9 +325,7 @@ namespace ConfigSettings
       var nextElementIsGenerated = false;
       foreach (var node in element.Nodes())
       {
-        var commentNode = node as XComment;
-        var elementNode = node as XElement;
-        if (commentNode != null)
+        if (node is XComment commentNode)
         {
           var comment = commentNode.Value.Trim();
           if (comment.Length > 3 && comment.StartsWith("{~", StringComparison.Ordinal) && comment.EndsWith("}", StringComparison.Ordinal))
@@ -342,7 +339,7 @@ namespace ConfigSettings
           else
             nextElementIsGenerated = false;
         }
-        else if (elementNode != null)
+        else if (node is XElement elementNode)
         {
           if (nextElementIsGenerated)
           {

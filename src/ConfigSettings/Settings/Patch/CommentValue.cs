@@ -1,9 +1,9 @@
 ﻿namespace ConfigSettings.Settings.Patch
 {
   /// <summary>
-  /// Переменная настроек.
+  /// Переменная комментария.
   /// </summary>
-  public class VariableValue
+  internal class CommentValue
   {
     /// <summary>
     /// Значение настройки.
@@ -19,8 +19,8 @@
     /// Конструктор.
     /// </summary>
     /// <param name="value">Значение.</param>
-    /// <param name="filePath">Источник хранения настройки.</param>
-    public VariableValue(string value, string filePath)
+    /// <param name="filePath">Источник хранения.</param>
+    public CommentValue(string value, string filePath)
     {
       this.Value = value;
       this.FilePath = filePath;
