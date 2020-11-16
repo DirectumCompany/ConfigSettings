@@ -54,13 +54,13 @@ namespace ConfigSettings.CommandLine
 
     public int Has(string path, string name)
     {
-      this.LogResult(CreateParser(path).HasVariable(null, name));
+      this.LogResult(CreateParser(path).HasVariable(name));
       return 0;
     }
     
     public int HasBlock(string path, string name)
     {
-      this.LogResult(CreateParser(path).HasBlock(null, name));
+      this.LogResult(CreateParser(path).HasBlock(name));
       return 0;
     }
     
