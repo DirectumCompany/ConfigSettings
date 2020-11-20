@@ -408,7 +408,7 @@ namespace ConfigSettings.Tests
   <import from="""" />
 ");
       var parser = new ConfigSettingsParser(configSettingsPath);
-      parser.AddOrUpdateVar("testName", "testValue");
+      parser.AddOrUpdateVariable("testName", "testValue");
       parser.Save();
       var content = TestTools.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
@@ -447,7 +447,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveNullConfigSettingsParserThenSaveShouldNotWork()
     {
       var parser = new ConfigSettingsParser(null);
-      parser.AddOrUpdateVar("NEW_VALUE", "true");
+      parser.AddOrUpdateVariable("NEW_VALUE", "true");
       var exception = ((MethodThatThrows) delegate { parser.Save(); }).GetException();
       exception.Should().BeOfType<InvalidOperationException>();
     }
@@ -457,7 +457,7 @@ namespace ConfigSettings.Tests
     {
       var parser = new ConfigSettingsParser(null);
       parser.GetVariable(null, "NEW_VALUE").Should().BeNull();
-      parser.AddOrUpdateVar("NEW_VALUE", "true");
+      parser.AddOrUpdateVariable("NEW_VALUE", "true");
       parser.GetVariable(null, "NEW_VALUE").Value.Should().Be("true");
     }
 
