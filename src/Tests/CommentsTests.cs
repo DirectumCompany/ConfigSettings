@@ -85,6 +85,25 @@ namespace ConfigSettingsTests
       SaveInFileAndCheck(linesToAdd);
     }
 
+    [Test]
+    public void WhenSaveImportWithCommentsShouldNotDuplicate()
+    {
+      var linesToAdd = new List<string>() {
+        @"<import from=""_imported_config.xml"" />",
+        "<!--Import comment 1-->",
+        "<!--Import comment 2-->",
+        @"<var name=""HELP_URI"" value=""https://help.npo-comp.ru/DirectumRX/Web"" />",
+        "<!--Import comment 3-->",
+        "<!--Import comment 4-->", };
+      var tempFile = this.CreateSettings(string.Join("\n", linesToAdd));
+      var parser = new ConfigSettingsParser(tempFile);
+      parser.Save();
+
+      var rawFileLines = File.ReadAllLines(tempFile);
+      var fileLines = rawFileLines.Take(rawFileLines.Length-1).Skip(2).Select(l => l.Trim()).ToArray();
+      linesToAdd.SequenceEqual(fileLines).Should().BeTrue();
+    }
+
     private bool IsFileContainLines(string path, List<string> lines)
     {
       var fileLines = File.ReadAllLines(path).Select(l => l.Trim());

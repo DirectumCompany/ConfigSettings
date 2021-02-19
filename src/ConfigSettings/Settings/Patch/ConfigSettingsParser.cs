@@ -51,7 +51,10 @@ namespace ConfigSettings.Patch
     /// </summary>
     public bool HasContentBlocks { get { return this.blocks.Any(b => !string.IsNullOrEmpty(b.Content)); } }
 
-    private readonly List<CommentValue> commentsValues = new List<CommentValue>();
+    /// <summary>
+    /// Комментарии, которые располагаются в конце файла. Остальные комментарии (даже многострочные) будут привязаны к другим элементам (переменным, блокам и т.д.).
+    /// </summary>
+    private readonly List<CommentValue> trailingCommentsValues = new List<CommentValue>();
 
     #endregion
 
@@ -550,33 +553,18 @@ namespace ConfigSettings.Patch
           else if (elementName == "block")
             this.ParseBlock(settingsFilePath, element);
         }
-        foreach (var node in settings.Root.Nodes())
-        {
-          if (node is XComment comment)
-            this.ParseComment(settingsFilePath, comment);
-        }
 
+        var trailingComments = settings.Root.Nodes()
+            .Reverse()
+            .TakeWhile(n => n is XComment)
+            .OfType<XComment>()
+            .Reverse();
+        this.trailingCommentsValues.AddRange(trailingComments.Select(c=> new CommentValue(c.Value, settingsFilePath)));
       }
       catch (Exception ex) when (!(ex is ParseConfigException))
       {
         throw new ParseConfigException(settingsFilePath, $"An error occured when parsing config file: '{settingsFilePath}'.", ex);
       }
-    }
-
-    /// <summary>
-    /// Получить комментарии.
-    /// </summary>
-    /// <param name="settingsFilePath">Путь к файлу с настройками.</param>
-    /// <param name="element">Элемент комменария.</param>
-    private void ParseComment(string settingsFilePath, XComment element)
-    {
-      if (element.NextNode is XElement next)
-      {
-        var nextName = next.Name.LocalName;
-        if (nextName == "import" || nextName == "meta" || nextName == "var" || nextName == "block")
-          return;
-      }
-      this.commentsValues.Add(new CommentValue(element.Value, settingsFilePath));
     }
 
     /// <summary>
@@ -709,7 +697,7 @@ namespace ConfigSettings.Patch
           rootElement.Add(blockContent.Root);
         }
 
-        var commentsWithEqualPath = this.commentsValues.Where(v => v.FilePath.Equals(filePath));
+        var commentsWithEqualPath = this.trailingCommentsValues.Where(v => v.FilePath.Equals(filePath));
         foreach (var comment in commentsWithEqualPath)
         {
           if (!string.IsNullOrEmpty(comment.Value))
