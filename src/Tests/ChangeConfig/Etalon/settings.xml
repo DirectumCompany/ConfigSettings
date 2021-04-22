@@ -19,6 +19,7 @@
   <var name="CLIENT_MODE" value="custom" />
   <var name="ENDPOINT_KIND" value="secret" />
   <var name="ALL_TYPE" value="all" />
+  <var name="HELP_URI" value=" " />
 
   <block name="RECIPIENT_TREE_SETTINGS" enabled="true" />
   <block name="NHIBERNATE_PROFILER" enabled="false" />

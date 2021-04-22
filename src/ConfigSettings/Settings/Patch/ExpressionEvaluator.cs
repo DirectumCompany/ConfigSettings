@@ -91,6 +91,8 @@ namespace ConfigSettings.Patch
         return null;
       if (this.FunctionName == IdentityFunctionName)
         return actualArgumentsValues[0];
+      if (this.FunctionName == "if-not-empty" && actualArgumentsValues.Length == 1)
+        return string.IsNullOrWhiteSpace(actualArgumentsValues[0]) ? null : actualArgumentsValues[0];
       if (this.FunctionName == "replace" && actualArgumentsValues.Length == 2)
         return currentValue.Replace(actualArgumentsValues[0], actualArgumentsValues[1]);
       if (this.FunctionName == "replace-if" && actualArgumentsValues.Length == 3 && actualArgumentsValues[0].ToUpperInvariant() == "TRUE")
