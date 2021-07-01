@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    name: Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Build
+        run: msbuild /v:m /p:Configuration=Release /t:Restore,Clean,Build,Pack /p:Version=${{ steps.get_version.outputs.version-without-v }} src/ConfigSettings.sln
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+
+      - name: Publish the package to nuget.org
+        shell: cmd
+        run: dotnet nuget push src\ConfigSettings\bin\Release\ConfigSettings.${{ steps.get_version.outputs.version-without-v }}.nupkg --skip-duplicate -s https://api.nuget.org/v3/index.json -k "%NUGET_AUTH_TOKEN%"
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
