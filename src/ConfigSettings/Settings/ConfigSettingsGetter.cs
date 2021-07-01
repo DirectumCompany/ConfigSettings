@@ -5,12 +5,20 @@ using ConfigSettings.Patch;
 
 namespace ConfigSettings
 {
-    /// <summary>
-    /// Получатель настроек. Представляет собой обертку над <see cref="ConfigSettingsParser"/> с усеченным функционалом.
-    /// Считывает настройки из корневого файла (указывается при создании).
-    /// </summary>
-    public class ConfigSettingsGetter
+  /// <summary>
+  /// Получатель настроек. Представляет собой обертку над <see cref="ConfigSettingsParser"/> с усеченным функционалом.
+  /// Считывает настройки из корневого файла (указывается при создании).
+  /// </summary>
+  public class ConfigSettingsGetter
   {
+    /// <summary>
+    /// Функция преобразования не типизированного значения настройки.
+    /// </summary>
+    /// <remarks>
+    /// Первым аргументом будет передано имя переменной, вторым - не типизированное значение.
+    /// </remarks>
+    public static Func<string, string, string> RawValueConverterDelegate { get; set; }
+
     /// <summary>
     /// Парсер настроек.
     /// </summary>
@@ -52,6 +60,10 @@ namespace ConfigSettings
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);
+
+      if (RawValueConverterDelegate != null)
+        value = RawValueConverterDelegate(name, value);
+
       if (string.IsNullOrEmpty(value))
         return getDefaultValue();
 
@@ -77,7 +89,7 @@ namespace ConfigSettings
     /// <param name="name">Имя блока.</param>
     /// <typeparam name="T">Тип блока.</typeparam>
     /// <returns>Типизированный блок.</returns>
-    public T GetBlock<T>(string name) where T: class
+    public T GetBlock<T>(string name) where T : class
     {
       return this.configSettingsParser.GetBlockContent<T>(name);
     }
