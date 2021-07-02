@@ -60,10 +60,10 @@ namespace ConfigSettings
         return getDefaultValue();
 
       var value = this.configSettingsParser.GetVariableValue(name);
-      var convertedValue = RawValueConverterDelegate?.Invoke(name, value);
 
-      if (!string.Equals(value, convertedValue, StringComparison.OrdinalIgnoreCase))
-        value = convertedValue;
+      var converterDelegate = RawValueConverterDelegate;
+      if (converterDelegate != null)
+        value = converterDelegate(name, value);
 
       if (string.IsNullOrEmpty(value))
         return getDefaultValue();
