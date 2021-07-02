@@ -1,0 +1,37 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  build:
+    name: Run tests
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        framework: [ 'netcoreapp2.0', 'net45' ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+   
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 2.1.x
+
+      - name: Install dependencies
+        shell: cmd
+        run: dotnet restore src/Tests/
+
+      - name: Test with dotnet
+        shell: cmd
+        run: dotnet test --logger trx  --framework ${{ matrix.framework }} --results-directory "TestResults-${{ matrix.framework }}" src/Tests/ConfigSettingsTests.csproj
+
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: dotnet-results-${{ matrix.framework }}
+          path: src/Tests/TestResults-${{ matrix.framework }}
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
