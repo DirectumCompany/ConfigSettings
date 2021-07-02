@@ -1,5 +1,6 @@
 # ConfigSettings
 
+[![Tests](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/tests.yml/badge.svg)](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/tests.yml)
 [![Publish](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/release.yml/badge.svg)](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/release.yml)
 [![NuGet](https://img.shields.io/nuget/v/configsettings.svg)](https://www.nuget.org/packages/ConfigSettings)
 
