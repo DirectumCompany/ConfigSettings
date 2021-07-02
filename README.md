@@ -1,6 +1,6 @@
 # ConfigSettings
 
-[![Build status](https://ci.appveyor.com/api/projects/status/rvtpa069lg82fshf/branch/master?svg=true)](https://ci.appveyor.com/project/hemnstill/configsettings/branch/master)
+[![Publish](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/release.yml/badge.svg)](https://github.com/DirectumCompany/ConfigSettings/actions/workflows/release.yml)
 [![NuGet](https://img.shields.io/nuget/v/configsettings.svg)](https://www.nuget.org/packages/ConfigSettings)
 
 **ConfigSettings** позволяет вынести настройки в отдельный файл и настроить их синхронизацию с Web.config или другими конфигурационными файлами.
