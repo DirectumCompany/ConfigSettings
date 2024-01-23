@@ -10,7 +10,7 @@ jobs:
   release:
     name: Release
     if: github.event.base_ref == 'refs/heads/master'
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - name: Checkout
         uses: actions/checkout@v2
