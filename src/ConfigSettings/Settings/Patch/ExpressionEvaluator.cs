@@ -87,6 +87,8 @@ namespace ConfigSettings.Patch
       if (string.IsNullOrEmpty(this.FunctionName))
         return null;
       var actualArgumentsValues = this.FunctionArguments.Select(arg => this.GetActualArgumentValue(arg, configSettingsParser)).ToArray();
+      if (this.FunctionName == "coalesce")
+        return actualArgumentsValues.FirstOrDefault(v => v != null);
       if (actualArgumentsValues.Any(v => v == null))
         return null;
       if (this.FunctionName == IdentityFunctionName)
