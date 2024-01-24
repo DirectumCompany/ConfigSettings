@@ -20,6 +20,7 @@
   <var name="ENDPOINT_KIND" value="secret" />
   <var name="ALL_TYPE" value="all" />
   <var name="HELP_URI" value=" " />
+  <var name="LOG_TO" value="stdout" />
 
   <block name="RECIPIENT_TREE_SETTINGS" enabled="true" />
   <block name="NHIBERNATE_PROFILER" enabled="false" />
