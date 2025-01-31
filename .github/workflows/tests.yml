@@ -33,7 +33,7 @@ jobs:
 
       - name: Test with dotnet
         shell: cmd
-        run: dotnet test --logger trx  --framework ${{ matrix.framework }} --results-directory "TestResults-${{ matrix.framework }}" src/Tests/ConfigSettingsTests.csproj
+        run: dotnet test --logger trx  --framework ${{ matrix.framework }} --results-directory "src/Tests/TestResults-${{ matrix.framework }}" src/Tests/ConfigSettingsTests.csproj
 
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
