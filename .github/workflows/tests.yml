@@ -15,17 +15,17 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        framework: [ 'netcoreapp2.0', 'net45' ]
+        framework: [ 'net8.0', 'net45' ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
    
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 2.1.x
+          dotnet-version: 8.0.x
 
       - name: Install dependencies
         shell: cmd
@@ -36,7 +36,7 @@ jobs:
         run: dotnet test --logger trx  --framework ${{ matrix.framework }} --results-directory "TestResults-${{ matrix.framework }}" src/Tests/ConfigSettingsTests.csproj
 
       - name: Upload dotnet test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: dotnet-results-${{ matrix.framework }}
           path: src/Tests/TestResults-${{ matrix.framework }}
